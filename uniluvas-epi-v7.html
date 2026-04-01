@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uniluvas — Testes de EPI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0D1F35;--navy2:#163352;--blue:#1A6EBB;--blue-l:#E8F2FC;
+  --green:#0E8F64;--green-l:#E3F5EE;--green-d:#075C40;
+  --amber:#C07A00;--amber-l:#FEF3DC;--amber-d:#7A4D00;
+  --red:#C43030;--red-l:#FDEAEA;--red-d:#7A1A1A;
+  --g50:#F8F9FA;--g100:#F0F2F4;--g200:#E1E5EA;--g300:#C8CDD5;
+  --g400:#9AA2AE;--g500:#6B7685;--g700:#374151;--g900:#111827;
+  --w:#FFFFFF;--r4:4px;--r8:8px;--r12:12px;--r16:16px;
+  --sh:0 2px 8px rgba(13,31,53,.10);--shl:0 6px 24px rgba(13,31,53,.13);
+  --f:'DM Sans',sans-serif;--m:'DM Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px}
+body{font-family:var(--f);background:var(--g50);color:var(--g900);min-height:100vh}
+#app{min-height:100vh;display:flex;flex-direction:column}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 14px;border-radius:var(--r8);font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid var(--g200);background:var(--w);color:var(--g700);font-family:var(--f);transition:all .12s;user-select:none;text-decoration:none}
+.btn:hover{background:var(--g50);border-color:var(--g300)}.btn:active{transform:scale(.97)}
+.btn-sm{padding:5px 11px;font-size:12px}.btn-lg{padding:11px 22px;font-size:14px}
+.btn-primary{background:var(--blue);border-color:var(--blue);color:#fff}.btn-primary:hover{background:#1560A8}
+.btn-navy{background:var(--navy);border-color:var(--navy);color:#fff}.btn-navy:hover{background:var(--navy2)}
+.btn-green{background:var(--green);border-color:var(--green);color:#fff}.btn-green:hover{background:var(--green-d)}
+.btn-amber{background:var(--amber);border-color:var(--amber);color:#fff}.btn-amber:hover{background:var(--amber-d)}
+.btn-wa{background:#25D366;border-color:#1ebe5a;color:#fff}.btn-wa:hover{background:#1db954}
+.btn-ghost{background:transparent;border-color:transparent}.btn-ghost:hover{background:var(--g100);border-color:transparent}
+/* Forms */
+.fg{margin-bottom:14px}
+.lbl{display:block;font-size:12px;font-weight:500;color:var(--g500);margin-bottom:5px;letter-spacing:.01em}
+.lbl.req::after{content:' *';color:var(--red)}
+input,select,textarea{width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:var(--r8);font-size:13px;font-family:var(--f);color:var(--g900);background:var(--w);transition:border-color .12s,box-shadow .12s;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,110,187,.12)}
+input[readonly]{background:var(--g50);color:var(--g500);cursor:default}
+textarea{resize:vertical;min-height:90px}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7685' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+/* Layout */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+.fl{display:flex}.fc{display:flex;align-items:center}.fb{display:flex;align-items:center;justify-content:space-between}
+.f1{flex:1}.fw{flex-wrap:wrap}
+.g6{gap:6px}.g8{gap:8px}.g12{gap:12px}.g16{gap:16px}
+.mt4{margin-top:4px}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt20{margin-top:20px}
+.mb4{margin-bottom:4px}.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}.mb20{margin-bottom:20px}
+/* Cards */
+.card{background:var(--w);border:1.5px solid var(--g200);border-radius:var(--r12);padding:20px}
+.card-p{cursor:pointer;transition:border-color .15s,transform .12s,box-shadow .15s}
+.card-p:hover{border-color:var(--g300);transform:translateY(-1px);box-shadow:var(--sh)}
+.card-p:active{transform:scale(.985)}
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.01em;white-space:nowrap}
+.bg{background:var(--green-l);color:var(--green-d)}
+.ba{background:var(--amber-l);color:var(--amber-d)}
+.br{background:var(--red-l);color:var(--red-d)}
+.bb{background:var(--blue-l);color:#0D4A8A}
+.bk{background:var(--g100);color:var(--g500)}
+/* Table */
+.thdr{display:grid;padding:8px 16px;font-size:11px;font-weight:600;color:var(--g400);letter-spacing:.05em;text-transform:uppercase;border-bottom:1.5px solid var(--g100)}
+.trow{display:grid;padding:12px 16px;border-bottom:1px solid var(--g100);font-size:13px;cursor:pointer;transition:background .1s}
+.trow:hover{background:var(--g50)}
+.tcols{grid-template-columns:2.2fr 1.8fr 1fr 1fr 1fr;gap:12px}
+/* Tabs */
+.tabs{display:flex;border-bottom:1.5px solid var(--g200);overflow-x:auto;padding:0 20px;background:var(--w)}
+.tab{padding:11px 14px;font-size:13px;font-weight:500;cursor:pointer;color:var(--g400);border-bottom:2px solid transparent;margin-bottom:-1.5px;white-space:nowrap;transition:color .12s}
+.tab.on{color:var(--blue);border-bottom-color:var(--blue)}
+.tab:hover:not(.on){color:var(--g700)}
+/* Steps */
+.sbar{display:flex;align-items:center;gap:0;padding:14px 20px;background:var(--w);border-bottom:1.5px solid var(--g200)}
+.snum{width:26px;height:26px;border-radius:50%;border:2px solid var(--g300);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--g400);flex-shrink:0}
+.snum.don{background:var(--green);border-color:var(--green);color:#fff}
+.snum.act{background:var(--blue);border-color:var(--blue);color:#fff}
+.slbl{font-size:12px;font-weight:500;color:var(--g400)}
+.slbl.act{color:var(--g900)}
+.sline{flex:1;height:1.5px;background:var(--g200);min-width:12px;max-width:40px}
+.sline.don{background:var(--green)}
+/* Rating buttons */
+.ritem{background:var(--g50);border:1.5px solid var(--g200);border-radius:var(--r12);padding:12px 14px}
+.rlbl{font-size:13px;font-weight:500;color:var(--g700);margin-bottom:10px}
+.rbtns{display:flex;gap:6px}
+.rbtn{flex:1;padding:9px 4px;border:1.5px solid var(--g200);border-radius:var(--r8);background:var(--w);font-size:11px;font-weight:600;cursor:pointer;text-align:center;font-family:var(--f);transition:transform .13s cubic-bezier(.34,1.56,.64,1),background .15s,border-color .15s,color .15s,box-shadow .15s;user-select:none;line-height:1.3}
+.rbtn:hover{border-color:var(--g300)}.rbtn:active{transform:scale(.87)!important}
+.rbtn.A.on{background:var(--green);border-color:var(--green-d);color:#fff;transform:scale(1.07);box-shadow:0 3px 12px rgba(14,143,100,.35);animation:pop .22s cubic-bezier(.34,1.56,.64,1)}
+.rbtn.AR.on{background:#E89B00;border-color:var(--amber-d);color:#fff;transform:scale(1.07);box-shadow:0 3px 12px rgba(192,122,0,.3);animation:pop .22s cubic-bezier(.34,1.56,.64,1)}
+.rbtn.R.on{background:var(--red);border-color:var(--red-d);color:#fff;transform:scale(1.07);box-shadow:0 3px 12px rgba(196,48,48,.3);animation:pop .22s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.14)}100%{transform:scale(1.07)}}
+/* Decision buttons */
+.dbtn{flex:1;padding:18px 12px;border:1.5px solid var(--g200);border-radius:var(--r12);background:var(--w);font-size:14px;font-weight:600;cursor:pointer;text-align:center;font-family:var(--f);transition:transform .15s cubic-bezier(.34,1.56,.64,1),background .2s,border-color .2s,color .2s,box-shadow .2s;user-select:none}
+.dbtn:hover{transform:translateY(-1px);border-color:var(--g300)}.dbtn:active{transform:scale(.96)!important}
+.dbtn.ap.on{background:var(--green-l);border-color:var(--green);color:var(--green-d);transform:scale(1.03) translateY(-2px);box-shadow:0 4px 18px rgba(14,143,100,.2);animation:dp .3s cubic-bezier(.34,1.56,.64,1)}
+.dbtn.rj.on{background:var(--red-l);border-color:var(--red);color:var(--red-d);transform:scale(1.03) translateY(-2px);box-shadow:0 4px 18px rgba(196,48,48,.18);animation:dp .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes dp{0%{transform:scale(1) translateY(0)}50%{transform:scale(1.06) translateY(-3px)}100%{transform:scale(1.03) translateY(-2px)}}
+/* Misc */
+.divider{height:1.5px;background:var(--g100);margin:20px 0}
+.sectitle{font-size:11px;font-weight:600;color:var(--g400);letter-spacing:.07em;text-transform:uppercase;padding-bottom:8px;border-bottom:1.5px solid var(--g100);margin-bottom:14px}
+.fld .fl-l{font-size:11px;font-weight:500;color:var(--g400);letter-spacing:.04em;margin-bottom:3px}
+.fld .fl-v{font-size:13px;color:var(--g900);line-height:1.5}
+.stat{background:var(--w);border:1.5px solid var(--g200);border-radius:var(--r12);padding:16px 20px}
+.stat .sl{font-size:11px;font-weight:500;color:var(--g400);letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px}
+.stat .sv{font-size:28px;font-weight:600;letter-spacing:-.02em;line-height:1}
+.stat .ss{font-size:12px;color:var(--g400);margin-top:4px}
+.code-box{background:var(--navy);color:#7DD3FC;font-family:var(--m);font-size:26px;font-weight:500;letter-spacing:.22em;padding:16px 24px;border-radius:var(--r12);text-align:center}
+.code-box.amber{background:var(--amber-l);color:var(--amber-d)}
+.cinput{font-family:var(--m)!important;letter-spacing:.2em!important;font-size:20px!important;text-align:center!important;text-transform:uppercase!important}
+.pheader{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--w);border-bottom:1.5px solid var(--g200)}
+.banner{padding:7px 16px;font-size:12px;font-weight:500}
+.ban-blue{background:var(--blue-l);color:#1E4A7A;border-bottom:1px solid #BDD9F5}
+.ban-green{background:var(--green-l);color:var(--green-d);border-bottom:1px solid #A7E5CB}
+.ban-amber{background:var(--amber-l);color:var(--amber-d);border-bottom:1px solid #F0D080}
+.ban-red{background:var(--red-l);color:var(--red-d);border-bottom:1px solid #F9B0B0}
+.empty{text-align:center;padding:48px 20px;color:var(--g400);font-size:13px}
+.tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:500;font-family:var(--m);background:var(--g100);color:var(--g500)}
+.ts{font-size:12px}.tx{font-size:11px}.tm{color:var(--g400)}.fw5{font-weight:500}.fw6{font-weight:600}
+.share-row{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.footer{background:var(--navy);color:rgba(255,255,255,.35);font-size:12px;padding:14px 24px;text-align:center;margin-top:auto}
+@media(max-width:640px){.g2,.g3,.g4{grid-template-columns:1fr}.tcols{grid-template-columns:1.6fr 1fr .9fr}.hm{display:none!important}.pxs{padding:0 14px!important}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes toastIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes popIn{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ── CONSTANTS ──────────────────────────────────────────
+const CRIT=[
+  {key:'resistencia',label:'Resistência'},
+  {key:'durabilidade',label:'Durabilidade'},
+  {key:'desempenho',label:'Desempenho'},
+  {key:'higienizacao',label:'Higienização'},
+  {key:'adequacao',label:'Adequação ao uso'},
+  {key:'conforto',label:'Conforto'},
+  {key:'aderencia',label:'Aderência'},
+  {key:'isolacaoTermica',label:'Isolação Térmica'}
+];
+const STEPS=['Equipamento','Cliente / Teste','Avaliação','Parecer'];
+
+// ── STORAGE ────────────────────────────────────────────
+const sv=(k,v)=>{try{localStorage.setItem('uni_'+k,JSON.stringify(v))}catch(e){}};
+const ld=(k,d)=>{try{const v=localStorage.getItem('uni_'+k);return v?JSON.parse(v):d}catch(e){return d}};
+
+// ── CODE GENERATOR (always 6 chars, no confusable) ────
+function mkCode(){
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let r='';
+  for(let i=0;i<6;i++) r+=c[Math.floor(Math.random()*c.length)];
+  return r;
+}
+
+// ── DEFAULT DATA ───────────────────────────────────────
+const DTESTS=[
+  {id:'TEST-2024-001',createdAt:'2024-11-10',epi:'Luva de Proteção Mecânica',amostras:'5',dataEntrega:'2024-10-28',referencia:'LPM-450',ca:'12345',caracteristicas:'Couro bovino grão, forro algodão, punho longo 30cm',fornecedor:'Safety Pro',contatoFornecedor:'(11) 9999-8888',empresa:'Mineração Vale Norte',contato:'João Silva',nomeUsuario:'Carlos Mendes',cargo:'Operador',matricula:'12347',area:'Mineração',atividade:'Operação de Equipamentos Pesados',detalhamento:'Turno 8h com manuseio de peças metálicas.',dataInicio:'2024-11-01',horaInicio:'07:00',dataTermino:'2024-11-08',horaTermino:'16:00',avaliacao:{resistencia:'A',durabilidade:'A',desempenho:'AR',higienizacao:'A',adequacao:'A',conforto:'AR',aderencia:'A',isolacaoTermica:'A'},parecerUsuario:'Boa resistência. Desempenho em alta demanda pode melhorar.',decisaoUsuario:'aprovado',parecerSESMT:'EPI aprovado para uso contínuo.',decisaoSESMT:'aprovado',responsavelSESMT:'Dr. Paulo Ribeiro',dataSESMT:'2024-11-12',sesmtCode:null,editHistory:[]},
+  {id:'TEST-2024-002',createdAt:'2024-11-20',epi:'Capacete de Segurança Classe B',amostras:'10',dataEntrega:'2024-11-10',referencia:'CS-300',ca:'67890',caracteristicas:'Classe B, aba frontal, carneira 6 pontos',fornecedor:'EquipMax',contatoFornecedor:'(21) 3322-1100',empresa:'Construção BRX',contato:'Ana Costa',nomeUsuario:'Fernando Lima',cargo:'Engenheiro',matricula:'55021',area:'Construção Civil',atividade:'Supervisão em altura',detalhamento:'Uso diário em andaimes.',dataInicio:'2024-11-15',horaInicio:'08:00',dataTermino:'2024-11-19',horaTermino:'17:30',avaliacao:{resistencia:'A',durabilidade:'A',desempenho:'A',higienizacao:'AR',adequacao:'A',conforto:'A',aderencia:'A',isolacaoTermica:'AR'},parecerUsuario:'Excelente produto!',decisaoUsuario:'aprovado',parecerSESMT:null,decisaoSESMT:null,responsavelSESMT:null,dataSESMT:null,sesmtCode:null,editHistory:[]},
+  {id:'TEST-2024-003',createdAt:'2024-12-05',epi:'Bota de Segurança PVC',amostras:'8',dataEntrega:'2024-11-20',referencia:'BSP-200',ca:'11223',caracteristicas:'PVC injetado, biqueira PVC, solado antiderrapante',fornecedor:'BoteriaGeral',contatoFornecedor:'(51) 4412-9090',empresa:'Agropecuária Santos',contato:'Maria Ferreira',nomeUsuario:'Roberto Alves',cargo:'Trabalhador Rural',matricula:'00891',area:'Agropecuária',atividade:'Lavoura irrigada',detalhamento:'Campo úmido, 10h/dia.',dataInicio:'2024-11-25',horaInicio:'06:00',dataTermino:'2024-12-04',horaTermino:'16:00',avaliacao:{resistencia:'R',durabilidade:'AR',desempenho:'R',higienizacao:'A',adequacao:'R',conforto:'R',aderencia:'AR',isolacaoTermica:'A'},parecerUsuario:'Produto não atende. Desconfortável após 2h.',decisaoUsuario:'rejeitado',parecerSESMT:'Reprovado. Não indicado para campo úmido.',decisaoSESMT:'rejeitado',responsavelSESMT:'Dr. Paulo Ribeiro',dataSESMT:'2024-12-06',sesmtCode:null,editHistory:[]}
+];
+const DCODES=[
+  {code:'CAMPO1',epi:'Luva de Proteção Mecânica',referencia:'LPM-450',ca:'12345',caracteristicas:'Couro bovino grão, punho longo',fornecedor:'Safety Pro',createdAt:'2024-12-01'},
+  {code:'OBRA22',epi:'Capacete Classe B',referencia:'CS-300',ca:'67890',caracteristicas:'Classe B, carneira 6 pontos',fornecedor:'EquipMax',createdAt:'2024-12-05'}
+];
+const DPORTALS=[
+  {code:'MINERA',empresa:'Mineração Vale Norte',createdAt:'2024-11-01'},
+  {code:'BRXCIV',empresa:'Construção BRX',createdAt:'2024-11-15'},
+  {code:'AGSANT',empresa:'Agropecuária Santos',createdAt:'2024-12-01'}
+];
+
+// ── STATE ──────────────────────────────────────────────
+function mkD(){return{epi:'',amostras:'',dataEntrega:'',referencia:'',ca:'',caracteristicas:'',fornecedor:'',contatoFornecedor:'',empresa:'',contato:'',nomeUsuario:'',cargo:'',matricula:'',area:'',atividade:'',detalhamento:'',dataInicio:'',horaInicio:'',dataTermino:'',horaTermino:'',resistencia:'',durabilidade:'',desempenho:'',higienizacao:'',adequacao:'',conforto:'',aderencia:'',isolacaoTermica:'',parecerUsuario:'',decisaoUsuario:''};}
+
+let S={
+  view:'home', auth:false,
+  tests:[], codes:[], portals:[],
+  adminTab:'fichas', adminPwd:'uniluvas', baseUrl:'',
+  form:{step:1,d:mkD(),editId:null,codeLock:false},
+  sel:null, selPT:null,
+  fSt:'todos', fEmp:'',
+  sesmtD:'', sesmtD2:'',
+  portalCode:'', portalCodeErr:'', portalCompany:null,
+  formCode:'', formCodeErr:'',
+  sesmtCode:'', sesmtCodeErr:'', sesmtRevTest:null,
+  newCode:{epi:'',referencia:'',ca:'',caracteristicas:'',fornecedor:''},
+  batch:[], genCode:null,
+  newPortal:{empresa:''}, genPortalCode:null,
+  toast:null
+};
+
+// ── FIREBASE REALTIME DATABASE (REST, sem SDK) ─────────
+function getFbUrl(){return(S.fbUrl||ld('fburl','')).replace(/\/$/,'');}
+async function fbGet(key){
+  const u=getFbUrl();if(!u)return null;
+  try{const r=await fetch(u+'/uniluvas/'+key+'.json');if(!r.ok)return null;return await r.json();}catch(e){return null;}
+}
+async function fbSet(key,val){
+  const u=getFbUrl();if(!u)return false;
+  try{const r=await fetch(u+'/uniluvas/'+key+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(val)});return r.ok;}catch(e){return false;}
+}
+function hasFb(){return!!getFbUrl();}
+
+// ── INIT ───────────────────────────────────────────────
+async function initData(){
+  S.adminPwd=ld('pwd','uniluvas');
+  S.baseUrl=ld('baseUrl','');
+  S.fbUrl=ld('fburl','');
+  if(hasFb()){
+    // Load from Firebase (shared cloud) — show loading state
+    document.getElementById('app').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:var(--f);font-size:13px;color:var(--g400)">Carregando dados...</div>';
+    const[ft,fc,fp]=await Promise.all([fbGet('tests'),fbGet('codes'),fbGet('portals')]);
+    S.tests=ft||ld('tests',null)||DTESTS;
+    S.codes=fc||ld('codes',null)||DCODES;
+    S.portals=fp||ld('portals',null)||DPORTALS;
+  }else{
+    S.tests=ld('tests',null)||DTESTS;
+    S.codes=ld('codes',null)||DCODES;
+    S.portals=ld('portals',null)||DPORTALS;
+  }
+  // Always cache locally for fast reloads
+  sv('tests',S.tests);sv('codes',S.codes);sv('portals',S.portals);
+}
+async function persist(){sv('tests',S.tests);if(hasFb())fbSet('tests',S.tests);}
+async function persistC(){sv('codes',S.codes);if(hasFb())fbSet('codes',S.codes);}
+async function persistP(){sv('portals',S.portals);if(hasFb())fbSet('portals',S.portals);}
+
+// ── URL HELPERS ────────────────────────────────────────
+function getBase(){
+  const saved=S.baseUrl||ld('baseUrl','');
+  if(saved) return saved.replace(/\/$/,'');
+  const h=window.location.href.split('?')[0];
+  return h.startsWith('file://')?'':h;
+}
+function makeUrl(params){
+  const base=getBase();
+  if(!base) return null;
+  const p=new URLSearchParams(params);
+  return base+'?'+p.toString();
+}
+function isFileProtocol(){return window.location.href.startsWith('file://');}
+
+function waUrl(text){return 'https://wa.me/?text='+encodeURIComponent(text);}
+function waLink(url,msg){
+  if(!url) return '';
+  const txt=(msg||'Acesse o link para preencher a ficha de teste de EPI:')+'\n'+url;
+  return `<a class="btn btn-wa btn-sm" href="${waUrl(txt)}" target="_blank" rel="noopener">📲 WhatsApp</a>`;
+}
+
+function copyText(text,btn){
+  navigator.clipboard.writeText(text).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+  });
+  if(btn){const o=btn.innerHTML;btn.innerHTML='✓ Copiado!';setTimeout(()=>{btn.innerHTML=o},1800);}
+}
+
+// ── URL ROUTING ────────────────────────────────────────
+function handleUrl(){
+  const p=new URLSearchParams(window.location.search);
+  const view=p.get('view'), code=(p.get('code')||'').toUpperCase();
+  if(!view) return;
+  // Limpa a URL imediatamente — evita que o refresh reabra a mesma tela
+  history.replaceState({},'',window.location.pathname);
+  if(view==='form'){
+    if(code){
+      const e=S.codes.find(c=>c.code===code);
+      if(e){S.form.d.epi=e.epi;S.form.d.referencia=e.referencia;S.form.d.ca=e.ca;S.form.d.caracteristicas=e.caracteristicas||'';S.form.d.fornecedor=e.fornecedor||'';S.form.codeLock=true;S.form.step=2;}
+    }
+    S.view='form';
+  }else if(view==='formblank'){S.view='form';}
+  else if(view==='portal'){
+    if(code){const pt=S.portals.find(p=>p.code===code);if(pt){S.portalCompany=pt;S.view='portal';return;}}
+    S.view='portalEntry';
+  }else if(view==='sesmt'){
+    if(code){
+      // Lê do localStorage local (pode ser diferente do Firebase se outra pessoa gravou)
+      const fresh=ld('tests',S.tests);
+      const t=fresh.find(t=>(t.sesmtCode||'').toUpperCase()===code);
+      if(t){
+        if(t.decisaoSESMT){S.sesmtCodeErr='Este parecer já foi registrado.';S.view='sesmtEntry';return;}
+        S.tests=fresh;S.sesmtRevTest=t;S.sesmtD2='';S.view='sesmtReview';return;
+      }
+    }
+    S.view='sesmtEntry';
+  }else if(view==='admin'){S.view=S.auth?'admin':'adminAuth';}
+}
+
+// ── HELPERS ────────────────────────────────────────────
+const fmtD=d=>{if(!d)return'—';try{return new Date(d+'T12:00:00').toLocaleDateString('pt-BR')}catch{return d}};
+function genId(){return'TEST-'+new Date().getFullYear()+'-'+String(S.tests.length+1).padStart(3,'0');}
+function showToast(msg,t='ok'){S.toast={msg,t};R();setTimeout(()=>{S.toast=null;R()},3200);}
+
+function sbadge(t){
+  if(t.decisaoSESMT==='aprovado') return`<span class="badge bg">✓ Aprovado</span>`;
+  if(t.decisaoSESMT==='rejeitado') return`<span class="badge br">✗ Rejeitado</span>`;
+  if(t.decisaoUsuario) return`<span class="badge ba">⏳ Aguard. SESMT</span>`;
+  return`<span class="badge bk">Pendente</span>`;
+}
+function abadge(av){
+  if(!av)return'—';const v=Object.values(av).filter(Boolean);if(!v.length)return'—';
+  if(v.includes('R'))return`<span class="badge br">Tem rejeições</span>`;
+  if(v.includes('AR'))return`<span class="badge ba">Com restrições</span>`;
+  return`<span class="badge bg">Tudo aprovado</span>`;
+}
+function rbadge(v){
+  if(!v)return`<span class="tm">—</span>`;
+  if(v==='A')return`<span class="badge bg">A</span>`;
+  if(v==='AR')return`<span class="badge ba">AR</span>`;
+  return`<span class="badge br">R</span>`;
+}
+function fld(l,v){return`<div class="fld"><div class="fl-l">${l}</div><div class="fl-v">${v||'—'}</div></div>`;}
+
+// share panel helper
+function sharePanel(code,view,msg,waMsg){
+  const url=makeUrl({view,code});
+  const isFile=isFileProtocol();
+  if(isFile){
+    return `<div class="ts tm mt8" style="background:var(--amber-l);color:var(--amber-d);padding:8px 12px;border-radius:8px;border:1px solid #F0D080">
+      ⚠ Você está abrindo o arquivo localmente. Para compartilhar links, acesse a aba <strong>Configurações</strong> no painel e informe a URL onde o arquivo está hospedado.
+    </div>`;
+  }
+  if(!url) return '';
+  return `<div class="share-row">
+    <button class="btn btn-sm" onclick="copyText('${url}',this)">📋 Copiar link</button>
+    ${waLink(url,waMsg||msg)}
+    <button class="btn btn-sm" onclick="copyText('${code}',this)">🔑 Só o código</button>
+  </div>`;
+}
+
+// ── ACTIONS ────────────────────────────────────────────
+function nav(v){
+  if(v==='admin'&&!S.auth){S.view='adminAuth';R();return;}
+  S.view=v;
+  if(v==='form')S.form={step:1,d:mkD(),editId:null,codeLock:false};
+  if(v==='editForm'&&S.sel){const t=S.sel;S.form={step:1,d:{...mkD(),...t,...t.avaliacao},editId:t.id,codeLock:false};}
+  if(v==='portalEntry'){S.portalCode='';S.portalCodeErr='';}
+  if(v==='sesmtEntry'){S.sesmtCode='';S.sesmtCodeErr='';}
+  if(v==='formEntry'){S.formCode='';S.formCodeErr='';}
+  window.scrollTo(0,0);R();
+}
+function checkAuth(){
+  const p=document.getElementById('ap')?.value;
+  if(p===S.adminPwd){S.auth=true;S.view='admin';R();}
+  else{const e=document.getElementById('aerr');if(e)e.style.display='block';}
+}
+function viewTest(id){S.sel=S.tests.find(t=>t.id===id);S.view='detail';window.scrollTo(0,0);R();}
+function setRating(k,v){S.form.d[k]=v;R();}
+function setDec(v){S.form.d.decisaoUsuario=v;R();}
+function saveFields(step){
+  const d=S.form.d;
+  const m={1:['epi','referencia','ca','amostras','dataEntrega','caracteristicas','fornecedor','contatoFornecedor'],2:['empresa','contato','nomeUsuario','cargo','matricula','area','atividade','detalhamento','dataInicio','horaInicio','dataTermino','horaTermino'],4:['parecerUsuario']};
+  (m[step]||[]).forEach(id=>{const el=document.getElementById('f_'+id);if(el)d[id]=el.value;});
+}
+function fNext(){
+  saveFields(S.form.step);const d=S.form.d;
+  if(S.form.step===1&&!d.epi.trim()){alert('Informe o nome do EPI.');return;}
+  if(S.form.step===2&&(!d.empresa.trim()||!d.nomeUsuario.trim())){alert('Informe empresa e usuário.');return;}
+  S.form.step++;window.scrollTo(0,0);R();
+}
+function fBack(){saveFields(S.form.step);S.form.step--;window.scrollTo(0,0);R();}
+
+function submitForm(){
+  saveFields(4);const d=S.form.d;
+  const av={};CRIT.forEach(c=>{av[c.key]=d[c.key];});
+  if(S.form.editId){
+    const i=S.tests.findIndex(t=>t.id===S.form.editId);
+    if(i>=0){
+      if(!S.tests[i].editHistory)S.tests[i].editHistory=[];
+      S.tests[i].editHistory.push({ts:new Date().toLocaleString('pt-BR'),by:'Admin'});
+      Object.assign(S.tests[i],{epi:d.epi,amostras:d.amostras,dataEntrega:d.dataEntrega,referencia:d.referencia,ca:d.ca,caracteristicas:d.caracteristicas,fornecedor:d.fornecedor,contatoFornecedor:d.contatoFornecedor,empresa:d.empresa,contato:d.contato,nomeUsuario:d.nomeUsuario,cargo:d.cargo,matricula:d.matricula,area:d.area,atividade:d.atividade,detalhamento:d.detalhamento,dataInicio:d.dataInicio,dataTermino:d.dataTermino,avaliacao:av,parecerUsuario:d.parecerUsuario,decisaoUsuario:d.decisaoUsuario});
+      S.sel=S.tests[i];
+    }
+    persist();S.view='detail';window.scrollTo(0,0);R();
+  }else{
+    const t={id:genId(),createdAt:new Date().toISOString().split('T')[0],epi:d.epi,amostras:d.amostras,dataEntrega:d.dataEntrega,referencia:d.referencia,ca:d.ca,caracteristicas:d.caracteristicas,fornecedor:d.fornecedor,contatoFornecedor:d.contatoFornecedor,empresa:d.empresa,contato:d.contato,nomeUsuario:d.nomeUsuario,cargo:d.cargo,matricula:d.matricula,area:d.area,atividade:d.atividade,detalhamento:d.detalhamento,dataInicio:d.dataInicio,dataTermino:d.dataTermino,avaliacao:av,parecerUsuario:d.parecerUsuario,decisaoUsuario:d.decisaoUsuario,parecerSESMT:null,decisaoSESMT:null,responsavelSESMT:null,dataSESMT:null,sesmtCode:null,editHistory:[]};
+    S.tests.unshift(t);persist();S.view='success';window.scrollTo(0,0);R();
+  }
+}
+function saveSESMT(){
+  const p=document.getElementById('sp')?.value||'',r=document.getElementById('sr')?.value||'',dd=document.getElementById('sd')?.value||'';
+  if(!S.sesmtD){alert('Selecione a decisão.');return;}if(!r.trim()){alert('Informe o responsável.');return;}
+  const t=S.sel;t.parecerSESMT=p;t.decisaoSESMT=S.sesmtD;t.responsavelSESMT=r;t.dataSESMT=dd;
+  const i=S.tests.findIndex(x=>x.id===t.id);if(i>=0)S.tests[i]=t;
+  persist();S.view='detail';showToast('Parecer SESMT registrado!');
+}
+function saveSesmtRev(){
+  const p=document.getElementById('srp')?.value||'',r=document.getElementById('srr')?.value||'',dd=document.getElementById('srd')?.value||'';
+  if(!S.sesmtD2){alert('Selecione a decisão.');return;}if(!r.trim()){alert('Informe o responsável.');return;}
+  // reload fresh from storage first
+  S.tests=ld('tests',S.tests);
+  const t=S.sesmtRevTest;t.parecerSESMT=p;t.decisaoSESMT=S.sesmtD2;t.responsavelSESMT=r;t.dataSESMT=dd;
+  const i=S.tests.findIndex(x=>x.id===t.id);if(i>=0)S.tests[i]=t;else S.tests.push(t);
+  persist();S.view='sesmtDone';window.scrollTo(0,0);R();
+}
+function createCode(){
+  const nc=S.newCode;if(!nc.epi.trim()){alert('Informe o nome do EPI.');return;}
+  const code=mkCode();
+  S.codes.unshift({code,epi:nc.epi,referencia:nc.referencia,ca:nc.ca,caracteristicas:nc.caracteristicas||'',fornecedor:nc.fornecedor||'',createdAt:new Date().toISOString().split('T')[0]});
+  persistC();S.genCode=code;
+  // Add to current batch
+  S.batch.push({code,epi:nc.epi});
+  S.newCode={epi:'',referencia:'',ca:'',caracteristicas:'',fornecedor:''};
+  R();
+}
+function clearBatch(){S.batch=[];S.genCode=null;R();}
+function createPortal(){
+  const emp=S.newPortal.empresa.trim();if(!emp){alert('Informe o nome da empresa.');return;}
+  const code=mkCode();
+  S.portals.unshift({code,empresa:emp,createdAt:new Date().toISOString().split('T')[0]});
+  persistP();S.genPortalCode=code;S.newPortal={empresa:''};R();
+}
+function genSesmtCode(){
+  const t=S.sel;if(t.sesmtCode)return;
+  const code=mkCode();t.sesmtCode=code;
+  const i=S.tests.findIndex(x=>x.id===t.id);if(i>=0)S.tests[i]=t;
+  persist();showToast('Código SESMT gerado!');R();
+}
+function lookupPortal(){
+  const code=S.portalCode.trim().toUpperCase();
+  if(code.length!==6){S.portalCodeErr='Código deve ter 6 caracteres.';R();return;}
+  const pt=S.portals.find(p=>p.code===code);
+  if(!pt){S.portalCodeErr='Código não encontrado.';R();return;}
+  S.portalCompany=pt;S.portalCodeErr='';S.view='portal';R();
+}
+function applyFormCode(){
+  const code=S.formCode.trim().toUpperCase();
+  if(code.length!==6){S.formCodeErr='Código deve ter 6 caracteres.';R();return;}
+  const e=S.codes.find(c=>c.code===code);
+  if(!e){S.formCodeErr='Código não encontrado.';R();return;}
+  S.form.d.epi=e.epi;S.form.d.referencia=e.referencia;S.form.d.ca=e.ca;S.form.d.caracteristicas=e.caracteristicas||'';S.form.d.fornecedor=e.fornecedor||'';
+  S.form.codeLock=true;S.form.step=2;S.formCodeErr='';S.view='form';window.scrollTo(0,0);R();
+}
+async function lookupSesmtCode(){
+  const code=S.sesmtCode.trim().toUpperCase();
+  if(code.length!==6){S.sesmtCodeErr='Código deve ter 6 caracteres.';R();return;}
+  // Try cloud first, then localStorage
+  let freshTests=hasFb()?(await fbGet('tests'))||ld('tests',S.tests):ld('tests',S.tests);
+  if(freshTests)sv('tests',freshTests);
+  const t=(freshTests||S.tests).find(t=>(t.sesmtCode||'').toUpperCase()===code);
+  if(!t){S.sesmtCodeErr='Código não encontrado. Verifique o código com a equipe Uniluvas.';R();return;}
+  if(t.decisaoSESMT){S.sesmtCodeErr='Este parecer já foi registrado anteriormente.';R();return;}
+  if(freshTests)S.tests=freshTests;
+  S.sesmtRevTest=t;S.sesmtD2='';S.sesmtCodeErr='';S.view='sesmtReview';window.scrollTo(0,0);R();
+}
+async function saveSettings(){
+  const url=document.getElementById('su')?.value||'';
+  const fb=document.getElementById('sfb')?.value||'';
+  const pwd=document.getElementById('spwd')?.value||'';
+  S.baseUrl=url.trim().replace(/\/$/,'');sv('baseUrl',S.baseUrl);
+  const newFb=fb.trim().replace(/\/$/,'');
+  if(newFb!==S.fbUrl){S.fbUrl=newFb;sv('fburl',S.fbUrl);}
+  if(pwd&&pwd.length>=4){S.adminPwd=pwd;sv('pwd',pwd);}
+  // Se configurou Firebase, faz upload dos dados locais
+  if(S.fbUrl&&newFb){
+    showToast('Sincronizando com Firebase...');
+    await Promise.all([fbSet('tests',S.tests),fbSet('codes',S.codes),fbSet('portals',S.portals)]);
+  }
+  showToast('Configurações salvas!');
+}
+
+// ── EXPORT ─────────────────────────────────────────────
+function exportCSV(){
+  const h=['ID','Data','EPI','Referência','CA','Fornecedor','Empresa','Usuário','Cargo','Área','Início','Fim','Res','Dur','Des','Hig','Ade uso','Conf','Ader','Iso','Dec.Usuário','Dec.SESMT','Resp.SESMT'];
+  const rows=S.tests.map(t=>[t.id,t.createdAt,t.epi,t.referencia,t.ca,t.fornecedor,t.empresa,t.nomeUsuario,t.cargo,t.area,t.dataInicio,t.dataTermino,...CRIT.map(c=>t.avaliacao?.[c.key]||''),t.decisaoUsuario,t.decisaoSESMT,t.responsavelSESMT]);
+  const csv=[h,...rows].map(r=>r.map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='fichas-epi-uniluvas.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+function exportPDF(t){
+  const rs=v=>v==='A'?'Aprovado':v==='AR'?'Com restrições':v==='R'?'Rejeitado':'—';
+  const dc=v=>v==='aprovado'?'background:#E3F5EE;color:#075C40':v==='rejeitado'?'background:#FDEAEA;color:#7A1A1A':'background:#f0f0f0;color:#666';
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ficha ${t.id}</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:11px;color:#111;padding:22px;max-width:820px;margin:0 auto}.hd{background:#0D1F35;color:#fff;padding:14px 18px;margin-bottom:18px;border-radius:5px;display:flex;justify-content:space-between}.hd h1{font-size:17px;font-weight:700;margin-bottom:3px}.hd small{font-size:10px;opacity:.6}h2{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#666;border-bottom:1px solid #e0e0e0;padding-bottom:4px;margin:16px 0 9px}.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;margin-bottom:11px}.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.fl{font-size:9px;color:#888;margin-bottom:2px}.fv{font-size:11px;font-weight:500}.ci{border:1px solid #e8e8e8;border-radius:3px;padding:8px;text-align:center}.cl{font-size:9px;color:#888;margin-bottom:3px}.cv{font-size:11px;font-weight:700}.pb{background:#f6f6f6;border:1px solid #e8e8e8;border-radius:4px;padding:11px;font-size:11px;line-height:1.6;margin-bottom:9px}.dc{display:inline-block;padding:3px 9px;border-radius:3px;font-size:10px;font-weight:700}.ft{margin-top:18px;padding-top:9px;border-top:1px solid #e0e0e0;font-size:10px;color:#888;display:flex;justify-content:space-between}@media print{body{padding:10px}}</style></head><body>
+<div class="hd"><div><h1>Ficha de Teste de EPI</h1><small>${t.id} · ${fmtD(t.createdAt)}</small></div><div style="text-align:right"><small style="opacity:.4">UNILUVAS PROTEÇÃO</small></div></div>
+<h2>Equipamento</h2><div class="g3"><div><div class="fl">EPI</div><div class="fv">${t.epi||'—'}</div></div><div><div class="fl">Referência</div><div class="fv">${t.referencia||'—'}</div></div><div><div class="fl">CA</div><div class="fv">${t.ca||'—'}</div></div><div><div class="fl">Amostras</div><div class="fv">${t.amostras||'—'}</div></div><div><div class="fl">Fornecedor</div><div class="fv">${t.fornecedor||'—'}</div></div><div><div class="fl">Entrega</div><div class="fv">${fmtD(t.dataEntrega)}</div></div></div>
+${t.caracteristicas?`<div style="margin-bottom:11px"><div class="fl">Características</div><div class="fv">${t.caracteristicas}</div></div>`:''}
+<h2>Cliente e Teste</h2><div class="g3"><div><div class="fl">Empresa</div><div class="fv">${t.empresa||'—'}</div></div><div><div class="fl">Contato</div><div class="fv">${t.contato||'—'}</div></div><div><div class="fl">Usuário</div><div class="fv">${t.nomeUsuario||'—'}</div></div><div><div class="fl">Cargo</div><div class="fv">${t.cargo||'—'}</div></div><div><div class="fl">Área</div><div class="fv">${t.area||'—'}</div></div><div><div class="fl">Período</div><div class="fv">${fmtD(t.dataInicio)} → ${fmtD(t.dataTermino)}</div></div></div>
+<h2>Avaliação por critério</h2><div class="g4">${CRIT.map(c=>`<div class="ci"><div class="cl">${c.label}</div><div class="cv">${rs(t.avaliacao?.[c.key])}</div></div>`).join('')}</div>
+<h2>Parecer do Usuário</h2><div class="pb">${t.parecerUsuario||'—'}</div><div style="margin-bottom:13px">Decisão: <span class="dc" style="${dc(t.decisaoUsuario)}">${t.decisaoUsuario==='aprovado'?'Aprovado':t.decisaoUsuario==='rejeitado'?'Rejeitado':'—'}</span></div>
+${t.parecerSESMT?`<h2>Parecer SESMT</h2><div class="pb">${t.parecerSESMT}</div><div style="display:flex;justify-content:space-between">Decisão: <span class="dc" style="${dc(t.decisaoSESMT)}">${t.decisaoSESMT==='aprovado'?'Aprovado':'Rejeitado'}</span><span>${t.responsavelSESMT||''} · ${fmtD(t.dataSESMT)}</span></div>`:''}
+${t.editHistory?.length?`<h2>Histórico</h2>${t.editHistory.map(h=>`<div style="font-size:10px;color:#888;padding:2px 0;border-bottom:1px solid #f0f0f0">Editado por ${h.by} em ${h.ts}</div>`).join('')}`:''}
+<div class="ft"><span>Gerado ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span><span>Uniluvas Proteção — Gestão de EPIs</span></div></body></html>`;
+  try{const w=window.open('','_blank');if(w){w.document.write(html);w.document.close();setTimeout(()=>w.print(),600);}}catch(e){alert('Ative pop-ups para exportar PDF.');}
+}
+
+// ── CHARTS ─────────────────────────────────────────────
+function donutChart(){
+  const ap=S.tests.filter(t=>t.decisaoSESMT==='aprovado').length;
+  const rj=S.tests.filter(t=>t.decisaoSESMT==='rejeitado').length;
+  const pd=S.tests.filter(t=>!t.decisaoSESMT).length;
+  const total=ap+rj+pd,pct=total?Math.round(ap/total*100):0;
+  const data=[{v:ap,c:'#0E8F64'},{v:rj,c:'#C43030'},{v:pd,c:'#C8CDD5'}].filter(d=>d.v>0);
+  const cx=80,cy=80,R=56,ir=34;let paths='';
+  if(!total)paths=`<circle cx="${cx}" cy="${cy}" r="${(R+ir)/2}" fill="none" stroke="#E1E5EA" stroke-width="${R-ir}"/>`;
+  else if(data.length===1)paths=`<circle cx="${cx}" cy="${cy}" r="${(R+ir)/2}" fill="none" stroke="${data[0].c}" stroke-width="${R-ir}"/>`;
+  else{let ang=-Math.PI/2;data.forEach(d=>{const sw=(d.v/total)*2*Math.PI,x1=cx+R*Math.cos(ang),y1=cy+R*Math.sin(ang);ang+=sw;const x2=cx+R*Math.cos(ang),y2=cy+R*Math.sin(ang),ix1=cx+ir*Math.cos(ang),iy1=cy+ir*Math.sin(ang),ix2=cx+ir*Math.cos(ang-sw),iy2=cy+ir*Math.sin(ang-sw),la=sw>Math.PI?1:0;paths+=`<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${R} ${R} 0 ${la} 1 ${x2.toFixed(1)} ${y2.toFixed(1)} L${ix1.toFixed(1)} ${iy1.toFixed(1)} A${ir} ${ir} 0 ${la} 0 ${ix2.toFixed(1)} ${iy2.toFixed(1)}Z" fill="${d.c}"/>`});}
+  return `<div class="fc g16"><svg width="160" height="160" viewBox="0 0 160 160">${paths}<text x="${cx}" y="${cy-5}" text-anchor="middle" font-size="22" font-weight="600" fill="#111827" font-family="DM Sans">${pct}%</text><text x="${cx}" y="${cy+14}" text-anchor="middle" font-size="11" fill="#9AA2AE" font-family="DM Sans">aprovação</text></svg><div style="display:flex;flex-direction:column;gap:10px;font-size:13px"><div class="fc g8"><div style="width:10px;height:10px;border-radius:50%;background:#0E8F64;flex-shrink:0"></div>${ap} aprovado${ap!==1?'s':''}</div><div class="fc g8"><div style="width:10px;height:10px;border-radius:50%;background:#C43030;flex-shrink:0"></div>${rj} rejeitado${rj!==1?'s':''}</div><div class="fc g8"><div style="width:10px;height:10px;border-radius:50%;background:#C8CDD5;flex-shrink:0"></div>${pd} pendente${pd!==1?'s':''}</div></div></div>`;
+}
+function critChart(){
+  if(!S.tests.length)return`<div class="empty">Sem dados</div>`;
+  const W=200;
+  const stats=CRIT.map(c=>{const ts=S.tests.filter(t=>t.avaliacao?.[c.key]);const n=ts.length;if(!n)return{l:c.label,pA:0,pAR:0,pR:0,pctA:0};const a=ts.filter(t=>t.avaliacao[c.key]==='A').length,ar=ts.filter(t=>t.avaliacao[c.key]==='AR').length,r=ts.filter(t=>t.avaliacao[c.key]==='R').length;return{l:c.label,pA:a/n,pAR:ar/n,pR:r/n,pctA:Math.round(a/n*100)};}).sort((a,b)=>b.pctA-a.pctA);
+  const rows=stats.map((s,i)=>{const y=i*32;let x=0;const bA=s.pA>0?`<rect x="${x}" y="4" width="${(s.pA*W).toFixed(1)}" height="14" rx="2" fill="#0E8F64"/>`:'';x+=s.pA*W;const bAR=s.pAR>0?`<rect x="${x.toFixed(1)}" y="4" width="${(s.pAR*W).toFixed(1)}" height="14" rx="2" fill="#E89B00"/>`:'';x+=s.pAR*W;const bR=s.pR>0?`<rect x="${x.toFixed(1)}" y="4" width="${(s.pR*W).toFixed(1)}" height="14" rx="2" fill="#C43030"/>`:'';return`<g transform="translate(0,${y})"><text x="0" y="15" font-size="10.5" fill="#6B7685" font-family="DM Sans">${s.l}</text><g transform="translate(106,0)">${bA}${bAR}${bR}<rect x="0" y="4" width="${W}" height="14" rx="2" fill="none" stroke="#E1E5EA" stroke-width=".8"/></g><text x="${106+W+6}" y="15" font-size="11" font-weight="600" fill="#111827" font-family="DM Sans">${s.pctA}%</text></g>`;}).join('');
+  return`<svg width="100%" viewBox="0 0 340 ${CRIT.length*32}" style="overflow:visible">${rows}</svg>`;
+}
+function monthChart(){
+  if(!S.tests.length)return`<div class="empty">Sem dados</div>`;
+  const months={};const now=new Date();
+  for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const k=d.toISOString().substr(0,7);months[k]={label:d.toLocaleDateString('pt-BR',{month:'short'}),ap:0,rj:0,pd:0,total:0};}
+  S.tests.forEach(t=>{const m=t.createdAt.substr(0,7);if(months[m]){months[m].total++;const d=t.decisaoSESMT;if(d==='aprovado')months[m].ap++;else if(d==='rejeitado')months[m].rj++;else months[m].pd++;}});
+  const data=Object.values(months),maxV=Math.max(...data.map(d=>d.total),1);
+  const H=80,bW=26,gap=16;
+  const bars=data.map((m,i)=>{const x=i*(bW+gap);const hAp=(m.ap/maxV)*H,hRj=(m.rj/maxV)*H,hPd=(m.pd/maxV)*H;let yB=H;const rPd=hPd>0?`<rect x="${x}" y="${(yB-=hPd).toFixed(1)}" width="${bW}" height="${hPd.toFixed(1)}" rx="2" fill="#C8CDD5"/>`:'';const rRj=hRj>0?`<rect x="${x}" y="${(yB-=hRj).toFixed(1)}" width="${bW}" height="${hRj.toFixed(1)}" rx="2" fill="#C43030"/>`:'';const rAp=hAp>0?`<rect x="${x}" y="${(yB-=hAp).toFixed(1)}" width="${bW}" height="${hAp.toFixed(1)}" rx="2" fill="#0E8F64"/>`:'';const lbl=m.total>0?`<text x="${x+bW/2}" y="${(H-(hAp+hRj+hPd)-4).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="600" fill="#374151" font-family="DM Sans">${m.total}</text>`:'';return`${rPd}${rRj}${rAp}${lbl}<text x="${x+bW/2}" y="${H+14}" text-anchor="middle" font-size="10.5" fill="#9AA2AE" font-family="DM Sans">${m.label}</text>`;}).join('');
+  const tw=(bW+gap)*6-gap;
+  return`<svg width="100%" viewBox="0 0 ${tw} ${H+20}" style="overflow:visible"><line x1="0" y1="${H}" x2="${tw}" y2="${H}" stroke="#E1E5EA" stroke-width="1"/>${bars}</svg>`;
+}
+
+// ── VIEWS ──────────────────────────────────────────────
+function vToast(){
+  if(!S.toast)return'';
+  const bg=S.toast.t==='ok'?'#0E8F64':S.toast.t==='err'?'#C43030':'#1A6EBB';
+  return`<div style="position:fixed;bottom:24px;right:24px;z-index:9999;background:${bg};color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:500;box-shadow:0 6px 24px rgba(0,0,0,.2);animation:toastIn .25s ease">${S.toast.msg}</div>`;
+}
+
+function vHeader(back,title,sub){
+  return`<header style="background:var(--navy)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:54px;max-width:1080px;margin:0 auto">
+      <a href="#" onclick="nav('home');return false;" style="display:flex;align-items:center;gap:10px;text-decoration:none">
+        <div style="width:32px;height:32px;background:var(--blue);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M10 2.5l2.3 5H18l-4.4 3.2 1.7 5.3L10 13.3 4.7 16l1.7-5.3L2 7.5h5.7z" fill="white"/></svg></div>
+        <div><div style="font-size:14px;font-weight:600;color:#fff">Uniluvas</div><div style="font-size:10px;color:rgba(255,255,255,.45);letter-spacing:.07em">GESTÃO DE EPIs</div></div>
+      </a>
+      <div class="fc g8">
+        ${back?`<button class="btn btn-ghost" style="color:rgba(255,255,255,.65);font-size:12px" onclick="nav('${back}')">← ${back==='admin'?'Painel':'Início'}</button>`:''}
+        ${S.auth?`<button class="btn btn-ghost" style="color:rgba(255,255,255,.4);font-size:11px" onclick="S.auth=false;nav('home')">Sair</button>`:''}
+      </div>
+    </div>
+    ${title?`<div style="border-top:1px solid rgba(255,255,255,.08);padding:9px 20px;max-width:1080px;margin:0 auto"><div style="font-size:13px;font-weight:500;color:rgba(255,255,255,.88)">${title}</div>${sub?`<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">${sub}</div>`:''}</div>`:''}
+  </header>`;
+}
+function vFooter(){return`<footer class="footer">Uniluvas Proteção — Sistema de Gestão de Fichas de Teste de EPI</footer>`;}
+
+// ── HOME (visitante vê apenas 2 opções) ────────────────
+function vHome(){
+  return vHeader()+`
+  <div style="padding:36px 20px 28px;max-width:600px;margin:0 auto;text-align:center">
+    <div style="display:inline-flex;align-items:center;gap:6px;background:var(--blue-l);color:var(--blue);padding:4px 12px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.05em;margin-bottom:16px">PLATAFORMA DE TESTES</div>
+    <div style="font-size:24px;font-weight:600;letter-spacing:-.02em;margin-bottom:8px">Gestão de Fichas de Teste de EPI</div>
+    <div style="font-size:14px;color:var(--g400);max-width:400px;margin:0 auto;line-height:1.6">Avaliação digital de equipamentos de proteção individual com rastreabilidade e parecer técnico.</div>
+  </div>
+  <div style="max-width:520px;margin:0 auto;padding:0 20px 40px">
+    <div class="g2 mb-20">
+      <div class="card card-p" onclick="nav('formEntry')" style="border-color:var(--amber-l)">
+        <div style="width:44px;height:44px;border-radius:10px;background:var(--amber-l);display:flex;align-items:center;justify-content:center;margin-bottom:14px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" fill="#FEF3DC" stroke="#C07A00" stroke-width="1.5"/><path d="M9 11V7a3 3 0 016 0v4" stroke="#C07A00" stroke-width="1.5" fill="none"/><circle cx="12" cy="16" r="1.5" fill="#C07A00"/></svg></div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:5px">Tenho um código</div>
+        <div style="font-size:12px;color:var(--g400);line-height:1.5">Recebi um código da Uniluvas para preencher a avaliação</div>
+        <div style="font-size:12px;font-weight:600;color:var(--amber);margin-top:12px">Inserir código →</div>
+      </div>
+      <div class="card card-p" onclick="nav('portalEntry')" style="border-color:var(--blue-l)">
+        <div style="width:44px;height:44px;border-radius:10px;background:var(--blue-l);display:flex;align-items:center;justify-content:center;margin-bottom:14px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" fill="#DBEAFE"/><rect x="3" y="5" width="18" height="14" rx="2" stroke="#1A6EBB" stroke-width="1.5"/><path d="M7 10h10M7 14h6" stroke="#1A6EBB" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:5px">Portal da empresa</div>
+        <div style="font-size:12px;color:var(--g400);line-height:1.5">Acompanhar resultados dos testes com código da empresa</div>
+        <div style="font-size:12px;font-weight:600;color:var(--blue);margin-top:12px">Acessar portal →</div>
+      </div>
+    </div>
+    <div class="card card-p" onclick="nav('sesmtEntry')" style="display:flex;align-items:center;gap:14px;padding:16px 18px">
+      <div style="width:38px;height:38px;border-radius:9px;background:var(--amber-l);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3L14.5 9H20l-4.6 3.3 1.7 5.5L12 14.5 6.9 17.8l1.7-5.5L4 9h5.5z" fill="#FEF3DC" stroke="#C07A00" stroke-width="1.3"/></svg></div>
+      <div class="f1"><div style="font-size:13px;font-weight:600">Registrar Parecer SESMT</div><div style="font-size:12px;color:var(--g400);margin-top:2px">Responsável de segurança / técnico — inserir código de revisão</div></div>
+      <div style="font-size:12px;font-weight:600;color:var(--amber)">→</div>
+    </div>
+    <div style="text-align:center;margin-top:32px"><button class="btn btn-ghost ts tm" onclick="nav('adminAuth')" style="font-size:11px">Acesso administrativo</button></div>
+  </div>
+  ${vFooter()}`;
+}
+
+// ── CODE ENTRY SCREEN ──────────────────────────────────
+function vCodeEntry(cfg){
+  return vHeader()+`
+  <div style="display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 54px - 42px);padding:20px">
+    <div class="card" style="width:100%;max-width:380px;padding:32px">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="width:50px;height:50px;border-radius:12px;${cfg.ibg};display:flex;align-items:center;justify-content:center;margin:0 auto 14px">${cfg.icon}</div>
+        <div style="font-size:11px;font-weight:600;color:var(--g400);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">${cfg.role}</div>
+        <div style="font-size:18px;font-weight:600;margin-bottom:4px">${cfg.title}</div>
+        <div style="font-size:13px;color:var(--g400);line-height:1.5">${cfg.desc}</div>
+      </div>
+      <div class="fg"><label class="lbl">Código de 6 caracteres</label><input class="cinput" type="text" placeholder="AB12CD" maxlength="6" id="ci" oninput="S.${cfg.sk}=this.value.toUpperCase()" value="${S[cfg.sk]||''}" onkeydown="if(event.key==='Enter')${cfg.fn}()"></div>
+      ${S[cfg.ek]?`<div style="background:var(--red-l);color:var(--red-d);padding:9px 12px;border-radius:8px;font-size:12px;margin-bottom:12px;border:1px solid #F9B0B0">${S[cfg.ek]}</div>`:''}
+      <button class="btn btn-primary" style="width:100%" onclick="${cfg.fn}()">Confirmar →</button>
+      <div style="text-align:center;margin-top:12px"><button class="btn btn-ghost ts tm" onclick="nav('home')">← Voltar</button></div>
+    </div>
+  </div>
+  ${vFooter()}`;
+}
+
+// ── AUTH ───────────────────────────────────────────────
+function vAuth(){
+  return vHeader()+`
+  <div style="display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 54px - 42px);padding:20px">
+    <div class="card" style="width:100%;max-width:350px;padding:32px">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="width:48px;height:48px;background:var(--navy);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" fill="white" opacity=".85"/><path d="M8 11V7a4 4 0 018 0v4" stroke="white" stroke-width="2" fill="none"/></svg></div>
+        <div style="font-size:18px;font-weight:600;margin-bottom:4px">Acesso Administrativo</div>
+        <div style="font-size:13px;color:var(--g400)">Área restrita Uniluvas</div>
+      </div>
+      <div class="fg"><label class="lbl req">Senha</label><input id="ap" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkAuth()"></div>
+      <div id="aerr" style="background:var(--red-l);color:var(--red-d);padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:12px;display:none;border:1px solid #F9B0B0">Senha incorreta. Tente novamente.</div>
+      <button class="btn btn-navy" style="width:100%" onclick="checkAuth()">Entrar</button>
+    </div>
+  </div>
+  ${vFooter()}`;
+}
+
+// ── ADMIN ──────────────────────────────────────────────
+function vAdmin(){
+  const tab=S.adminTab;
+  return vHeader()+`
+  <div class="pheader">
+    <div><div style="font-size:16px;font-weight:600">Painel de Controle</div><div style="font-size:12px;color:var(--g400);margin-top:2px">Fichas, relatórios e acessos</div></div>
+    <div class="fc g8">
+      <button class="btn btn-sm" onclick="exportCSV()">↓ CSV</button>
+      <button class="btn btn-primary btn-sm" onclick="nav('form')">+ Nova ficha</button>
+    </div>
+  </div>
+  <div class="tabs">${['fichas','relatorios','codigos','portais','config'].map(t=>`<div class="tab ${tab===t?'on':''}" onclick="S.adminTab='${t}';R()">${{fichas:'Fichas',relatorios:'Relatórios',codigos:'Cód. Funcionário',portais:'Portais',config:'Configurações'}[t]}</div>`).join('')}</div>
+  ${{fichas:vAFichas,relatorios:vARel,codigos:vACodigos,portais:vAPortais,config:vAConfig}[tab]()}
+  ${vFooter()}`;
+}
+
+function vAFichas(){
+  const fl=S.tests.filter(t=>{
+    if(S.fSt!=='todos'){const d=t.decisaoSESMT;if(S.fSt==='aprovado'&&d!=='aprovado')return false;if(S.fSt==='rejeitado'&&d!=='rejeitado')return false;if(S.fSt==='pendente'&&(!t.decisaoUsuario||t.decisaoSESMT))return false;}
+    if(S.fEmp&&!t.empresa.toLowerCase().includes(S.fEmp.toLowerCase()))return false;
+    return true;
+  });
+  const n=S.tests.length,ap=S.tests.filter(t=>t.decisaoSESMT==='aprovado').length;
+  const rj=S.tests.filter(t=>t.decisaoSESMT==='rejeitado').length;
+  const pd=S.tests.filter(t=>!t.decisaoSESMT&&t.decisaoUsuario).length;
+  return`
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 20px;border-bottom:1.5px solid var(--g200)">
+    <div class="stat"><div class="sl">Total</div><div class="sv">${n}</div></div>
+    <div class="stat" style="border-color:#A7E5CB"><div class="sl" style="color:var(--green)">Aprovados</div><div class="sv" style="color:var(--green-d)">${ap}</div><div class="ss">${n?Math.round(ap/n*100):0}%</div></div>
+    <div class="stat" style="border-color:#F0D080"><div class="sl" style="color:var(--amber)">Pend. SESMT</div><div class="sv" style="color:var(--amber-d)">${pd}</div></div>
+    <div class="stat" style="border-color:#F9B0B0"><div class="sl" style="color:var(--red)">Rejeitados</div><div class="sv" style="color:var(--red-d)">${rj}</div></div>
+  </div>
+  <div class="fc g8" style="padding:10px 20px;border-bottom:1.5px solid var(--g200)">
+    <select style="width:auto;min-width:130px" onchange="S.fSt=this.value;R()">
+      <option value="todos" ${S.fSt==='todos'?'selected':''}>Todos</option>
+      <option value="aprovado" ${S.fSt==='aprovado'?'selected':''}>Aprovados</option>
+      <option value="rejeitado" ${S.fSt==='rejeitado'?'selected':''}>Rejeitados</option>
+      <option value="pendente" ${S.fSt==='pendente'?'selected':''}>Pendentes SESMT</option>
+    </select>
+    <input placeholder="Buscar empresa..." style="flex:1;max-width:260px" oninput="S.fEmp=this.value;R()" value="${S.fEmp}">
+    <div class="ts tm" style="margin-left:auto">${fl.length} ficha${fl.length!==1?'s':''}</div>
+  </div>
+  <div style="background:var(--w)">
+    <div class="thdr tcols"><div>EPI / Referência</div><div>Empresa</div><div class="hm">Data</div><div>Avaliação</div><div>Status</div></div>
+    ${fl.length===0?`<div class="empty">📋 Nenhuma ficha encontrada</div>`:''}
+    ${fl.map(t=>`<div class="trow tcols" onclick="viewTest('${t.id}')"><div><div class="fw5">${t.epi}</div><div class="tx tm mt4">${t.referencia||'—'} · CA ${t.ca||'—'}</div></div><div><div>${t.empresa}</div><div class="tx tm">${t.contato||''}</div></div><div class="ts tm hm">${fmtD(t.createdAt)}</div><div>${abadge(t.avaliacao)}</div><div>${sbadge(t)}</div></div>`).join('')}
+  </div>`;
+}
+
+function vARel(){
+  const n=S.tests.length,ap=S.tests.filter(t=>t.decisaoSESMT==='aprovado').length;
+  const allR=S.tests.flatMap(t=>CRIT.map(c=>t.avaliacao?.[c.key])).filter(Boolean);
+  const avgC=allR.length?Math.round(allR.filter(v=>v==='A').length/allR.length*100):0;
+  const pct=n?Math.round(ap/n*100):0;
+  return`
+  <div style="padding:14px 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;border-bottom:1.5px solid var(--g200)">
+    <div class="stat"><div class="sl">Taxa aprovação</div><div class="sv">${pct}%</div></div>
+    <div class="stat"><div class="sl">Critérios aprov.</div><div class="sv">${avgC}%</div></div>
+    <div class="stat"><div class="sl">Total fichas</div><div class="sv">${n}</div></div>
+  </div>
+  <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:24px;border-bottom:1.5px solid var(--g200)">
+    <div><div class="sectitle mb12">Status geral</div>${donutChart()}</div>
+    <div><div class="sectitle mb12">Testes por mês</div>${monthChart()}<div class="fc g12 mt12 tx tm"><div class="fc g6"><div style="width:8px;height:8px;border-radius:2px;background:#0E8F64"></div>Aprov.</div><div class="fc g6"><div style="width:8px;height:8px;border-radius:2px;background:#C43030"></div>Rejeit.</div><div class="fc g6"><div style="width:8px;height:8px;border-radius:2px;background:#C8CDD5"></div>Pend.</div></div></div>
+  </div>
+  <div style="padding:20px"><div class="sectitle mb12">Desempenho por critério</div><div class="fc g12 mb16 tx tm"><div class="fc g6"><div style="width:8px;height:8px;border-radius:2px;background:#0E8F64"></div>A</div><div class="fc g6"><div style="width:8px;height:8px;border-radius:2px;background:#E89B00"></div>AR</div><div class="fc g6"><div style="width:8px;height:8px;border-radius:2px;background:#C43030"></div>R</div></div>${critChart()}</div>`;
+}
+
+function vACodigos(){
+  const nc=S.newCode;
+  const formBlankUrl=makeUrl({view:'formblank'});
+  const isFile=isFileProtocol();
+  return`
+  <div style="padding:20px;max-width:760px">
+    ${isFile?`<div style="background:var(--amber-l);border:1px solid #F0D080;border-radius:10px;padding:12px 14px;font-size:12px;color:var(--amber-d);margin-bottom:16px">⚠ <strong>Arquivo local detectado.</strong> Os links de compartilhamento só funcionarão após hospedar o arquivo. Configure a URL na aba <strong>Configurações</strong>.</div>`:''}
+    <!-- LINK DA FICHA EM BRANCO -->
+    <div class="card mb-20" style="border-color:var(--green-l);background:var(--green-l)">
+      <div class="fb mb8"><div style="font-size:13px;font-weight:600;color:var(--green-d)">📄 Link — Ficha em branco</div></div>
+      <div style="font-size:12px;color:var(--green-d);margin-bottom:10px">Envie este link quando o funcionário conhece todos os dados do EPI e pode preencher tudo.</div>
+      <div class="share-row">
+        ${!isFile&&formBlankUrl?`<button class="btn btn-sm" onclick="copyText('${formBlankUrl}',this)">📋 Copiar link</button>${waLink(formBlankUrl,'Preencha a ficha de avaliação do EPI pelo link:')}`:'<span class="tx tm">Configure a URL base nas Configurações para gerar links.</span>'}
+      </div>
+    </div>
+    <!-- NOVO CÓDIGO -->
+    <div class="card mb-20">
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px">Gerar código para funcionário</div>
+      <div style="font-size:12px;color:var(--g400);margin-bottom:16px">Preencha os dados do EPI. O funcionário receberá o formulário com esses dados pré-preenchidos — ele avalia sem precisar saber o código do produto.</div>
+      <div class="g2 mb12">
+        <div class="fg" style="margin:0"><label class="lbl req">Nome do EPI</label><input placeholder="Ex: Luva de proteção mecânica" oninput="S.newCode.epi=this.value" value="${nc.epi}"></div>
+        <div class="fg" style="margin:0"><label class="lbl">Referência / Modelo</label><input placeholder="Código interno" oninput="S.newCode.referencia=this.value" value="${nc.referencia}"></div>
+      </div>
+      <div class="g2 mb12">
+        <div class="fg" style="margin:0"><label class="lbl">Número do CA</label><input placeholder="CA do produto" oninput="S.newCode.ca=this.value" value="${nc.ca}"></div>
+        <div class="fg" style="margin:0"><label class="lbl">Fornecedor</label><input placeholder="Nome do fabricante" oninput="S.newCode.fornecedor=this.value" value="${nc.fornecedor}"></div>
+      </div>
+      <div class="fg"><label class="lbl">Características / Descrição</label><input placeholder="Material, tamanho, especificações..." oninput="S.newCode.caracteristicas=this.value" value="${nc.caracteristicas}"></div>
+      <div class="fc g8 mt4">
+        <button class="btn btn-primary" onclick="createCode()">+ Gerar código</button>
+        ${S.batch.length>0?`<span class="tx tm">${S.batch.length} código${S.batch.length>1?'s':''} no lote</span><button class="btn btn-ghost ts" onclick="clearBatch()">Limpar lote</button>`:''}
+      </div>
+      <!-- BATCH RESULT -->
+      ${S.batch.length>0?`
+        <div style="margin-top:16px;padding:14px;background:var(--g50);border-radius:10px;border:1.5px solid var(--g200)">
+          <div style="font-size:12px;font-weight:600;color:var(--g700);margin-bottom:10px">✅ Lote gerado — ${S.batch.length} EPI${S.batch.length>1?'s':''}</div>
+          ${S.batch.map(b=>{const u=makeUrl({view:'form',code:b.code});return`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--g200)">
+            <div class="tag" style="background:var(--navy);color:#7DD3FC;font-size:13px;letter-spacing:.12em;padding:5px 10px;flex-shrink:0">${b.code}</div>
+            <div class="f1 ts fw5">${b.epi}</div>
+            <div class="fc g6">
+              ${u?`<button class="btn btn-sm" onclick="copyText('${u}',this)">📋 Link</button>${waLink(u,'Avalie o EPI «'+b.epi+'» pelo link:')}`:''} 
+            </div>
+          </div>`;}).join('')}
+          ${!isFile&&S.batch.length>1?`
+          <div style="margin-top:10px">
+            <button class="btn btn-sm btn-wa" onclick="sendAllWa()">📲 Enviar tudo no WhatsApp</button>
+          </div>`:'' }
+        </div>`:''}
+    </div>
+    <!-- EXISTING CODES -->
+    <div>
+      <div class="fb mb12"><div style="font-size:14px;font-weight:600">Códigos ativos (${S.codes.length})</div></div>
+      ${S.codes.length===0?`<div class="empty">🔑 Nenhum código criado</div>`:''}
+      ${S.codes.map(c=>{const u=makeUrl({view:'form',code:c.code});return`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--w);border:1.5px solid var(--g200);border-radius:10px;margin-bottom:8px">
+        <div class="tag" style="background:var(--navy);color:#7DD3FC;font-size:14px;letter-spacing:.15em;padding:5px 10px">${c.code}</div>
+        <div class="f1"><div class="fw5 ts">${c.epi}</div><div class="tx tm">${[c.referencia,c.ca?'CA '+c.ca:'',c.fornecedor].filter(Boolean).join(' · ')} · ${fmtD(c.createdAt)}</div></div>
+        ${u?`<div class="fc g6"><button class="btn btn-sm" onclick="copyText('${u}',this)">📋 Link</button>${waLink(u,'Avalie o EPI «'+c.epi+'» pelo link:')}</div>`:'' }
+      </div>`;}).join('')}
+    </div>
+  </div>`;
+}
+
+function sendAllWa(){
+  const lines=S.batch.map(b=>{const u=makeUrl({view:'form',code:b.code});return`• ${b.epi}: ${u}`;}).join('\n');
+  const txt='Olá! Segue os links para avaliação de EPI:\n\n'+lines;
+  window.open(waUrl(txt),'_blank');
+}
+
+function vAPortais(){
+  const np=S.newPortal;
+  const isFile=isFileProtocol();
+  return`
+  <div style="padding:20px;max-width:760px">
+    <div class="card mb-20">
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px">Criar portal para empresa cliente</div>
+      <div style="font-size:12px;color:var(--g400);margin-bottom:16px">Cada empresa recebe um código único. Com ele, o cliente acessa e vê somente os testes da empresa dele.</div>
+      <div class="fg"><label class="lbl req">Nome da empresa</label><input placeholder="Ex: Mineração Vale Norte" oninput="S.newPortal.empresa=this.value" value="${np.empresa}"><div class="tx tm mt4">⚠ Use exatamente o mesmo nome que aparece nas fichas.</div></div>
+      <button class="btn btn-primary" onclick="createPortal()">Criar portal →</button>
+      ${S.genPortalCode?`
+        <div style="margin-top:14px;padding:14px;background:var(--g50);border-radius:10px;border:1.5px solid var(--g200)">
+          <div class="ts tm mb8">✅ Portal criado para <strong>${S.portals[0]?.empresa}</strong></div>
+          <div class="code-box mb12">${S.genPortalCode}</div>
+          ${sharePanel(S.genPortalCode,'portal','Link do portal:','Acesse o portal de resultados de EPI da sua empresa:')}
+        </div>`:''}
+    </div>
+    <div>
+      <div class="fb mb12"><div style="font-size:14px;font-weight:600">Portais criados (${S.portals.length})</div></div>
+      ${S.portals.map(p=>{const u=makeUrl({view:'portal',code:p.code});return`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--w);border:1.5px solid var(--g200);border-radius:10px;margin-bottom:8px">
+        <div class="tag" style="background:var(--navy);color:#7DD3FC;font-size:14px;letter-spacing:.15em;padding:5px 10px">${p.code}</div>
+        <div class="f1"><div class="fw5 ts">${p.empresa}</div><div class="tx tm">${fmtD(p.createdAt)} · ${S.tests.filter(t=>t.empresa===p.empresa).length} teste(s)</div></div>
+        ${u?`<div class="fc g6"><button class="btn btn-sm" onclick="copyText('${u}',this)">📋 Link</button>${waLink(u,'Acesse o portal de resultados de EPI:')}</div>`:'' }
+      </div>`;}).join('')}
+    </div>
+  </div>`;
+}
+
+function vAConfig(){
+  const base=getBase();
+  const fbConfigured=!!S.fbUrl;
+  return`
+  <div style="padding:20px;max-width:620px">
+    <!-- FIREBASE — banco de dados compartilhado -->
+    <div class="card mb-20" style="border-color:${fbConfigured?'#A7E5CB':'#F0D080'}">
+      <div class="fb mb4">
+        <div style="font-size:14px;font-weight:600">☁ Banco de dados compartilhado (Firebase)</div>
+        ${fbConfigured?'<span class="badge bg">✓ Ativo</span>':'<span class="badge ba">Não configurado</span>'}
+      </div>
+      <div style="font-size:12px;color:var(--g400);margin-bottom:14px;line-height:1.6">
+        <strong style="color:var(--g700)">Por que configurar?</strong> Sem isso, cada dispositivo tem seus próprios dados. O funcionário preenche no celular mas o admin não vê no computador. Com Firebase, todos compartilham o mesmo banco de dados em tempo real.
+      </div>
+      ${!fbConfigured?`<div style="background:var(--blue-l);border:1px solid #BDD9F5;border-radius:8px;padding:12px 14px;font-size:12px;color:#1E4A7A;margin-bottom:14px;line-height:1.8">
+        <strong>Como configurar (grátis, ~5 min):</strong><br>
+        1. Acesse <a href="https://console.firebase.google.com" target="_blank" style="color:var(--blue)">console.firebase.google.com</a> → criar projeto<br>
+        2. No menu lateral → <strong>Build → Realtime Database → Create database</strong><br>
+        3. Escolha <em>"Start in test mode"</em> → habilitar<br>
+        4. Copie a URL exibida (ex: <code style="background:#D8EDFF;padding:1px 4px;border-radius:3px">https://meu-projeto-rtdb.firebaseio.com</code>)<br>
+        5. Cole abaixo e clique em Salvar
+      </div>`:''}
+      <div class="fg"><label class="lbl">URL do Firebase Realtime Database</label><input id="sfb" value="${S.fbUrl||''}" placeholder="https://meu-projeto-default-rtdb.firebaseio.com"></div>
+      ${fbConfigured?`<div class="ts tm mb12">Banco ativo: <code style="background:var(--g100);padding:1px 5px;border-radius:3px;font-size:11px">${S.fbUrl}</code></div>`:''}
+    </div>
+    <!-- URL base -->
+    <div class="card mb-20">
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px">URL base do sistema</div>
+      <div style="font-size:12px;color:var(--g400);margin-bottom:14px">Endereço onde o arquivo está hospedado — necessário para gerar links e botões de WhatsApp.</div>
+      ${isFileProtocol()?`<div style="background:var(--amber-l);border:1px solid #F0D080;border-radius:8px;padding:10px 12px;font-size:12px;color:var(--amber-d);margin-bottom:14px">
+        Para hospedar: acesse <a href="https://app.netlify.com/drop" target="_blank" style="color:var(--blue)">netlify.com/drop</a>, arraste o arquivo e copie a URL gerada.
+      </div>`:''}
+      <div class="fg"><label class="lbl">URL do sistema</label><input id="su" value="${S.baseUrl||base}" placeholder="https://singular-gecko-278f4d.netlify.app"></div>
+      <div class="ts tm mb12">URL detectada: <code style="background:var(--g100);padding:1px 5px;border-radius:3px;font-size:11px">${base||'arquivo local'}</code></div>
+      <div class="divider"></div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px">Alterar senha de acesso</div>
+      <div class="fg mt8"><label class="lbl">Nova senha (mín. 4 caracteres)</label><input id="spwd" type="password" placeholder="Deixe em branco para manter a atual"></div>
+      <button class="btn btn-primary" onclick="saveSettings()">Salvar configurações</button>
+    </div>
+    <!-- Links diretos -->
+    <div class="card">
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px">Links diretos</div>
+      <div style="font-size:12px;color:var(--g400);margin-bottom:14px">Para compartilhar acesso direto a cada área do sistema.</div>
+      ${['formblank','portalEntry','sesmtEntry'].map(v=>{const u=makeUrl({view:v});const labels={formblank:'Ficha em branco',portalEntry:'Portal do cliente',sesmtEntry:'Revisão SESMT'};return`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--g100)">
+        <div class="f1"><div class="ts fw5">${labels[v]}</div><div class="tx tm" style="font-family:var(--m)">${u||'Configure a URL acima'}</div></div>
+        ${u?`<button class="btn btn-sm" onclick="copyText('${u}',this)">📋 Copiar</button>`:''}
+      </div>`;}).join('')}
+    </div>
+  </div>`;
+}
+
+// ── DETAIL ─────────────────────────────────────────────
+function vDetail(){
+  const t=S.sel;if(!t)return'';
+  return vHeader('admin',t.epi,t.id+' · '+fmtD(t.createdAt))+`
+  <div class="pheader">
+    <div class="fc g8">${sbadge(t)}</div>
+    <div class="fc g8"><button class="btn btn-sm" onclick="exportPDF(S.sel)">↓ PDF</button><button class="btn btn-sm" onclick="nav('editForm')">✎ Editar</button></div>
+  </div>
+  <div style="padding:20px;max-width:860px">
+    <div class="card mb-16"><div class="sectitle">Equipamento</div><div class="g3 mb12">${fld('EPI',t.epi)}${fld('Referência',t.referencia)}${fld('CA',t.ca)}${fld('Amostras',t.amostras)}${fld('Fornecedor',t.fornecedor)}${fld('Entrega',fmtD(t.dataEntrega))}</div>${t.caracteristicas?`<div class="mt8">${fld('Características',t.caracteristicas)}</div>`:''}</div>
+    <div class="card mb-16"><div class="sectitle">Cliente e Teste</div><div class="g3 mb12">${fld('Empresa',t.empresa)}${fld('Contato',t.contato)}${fld('Usuário',t.nomeUsuario)}${fld('Cargo',t.cargo)}${fld('Área',t.area)}${fld('Período',t.dataInicio?fmtD(t.dataInicio)+' → '+fmtD(t.dataTermino):'—')}</div>${t.detalhamento?`<div class="mt8">${fld('Detalhamento',t.detalhamento)}</div>`:''}</div>
+    <div class="card mb-16"><div class="sectitle">Avaliação por critério</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${CRIT.map(c=>`<div style="background:var(--g50);border:1.5px solid var(--g200);border-radius:8px;padding:10px"><div style="font-size:11px;color:var(--g400);margin-bottom:7px">${c.label}</div>${rbadge(t.avaliacao?.[c.key])}</div>`).join('')}</div></div>
+    <div class="card mb-16"><div class="sectitle">Parecer do Usuário</div><div style="background:var(--g50);border-radius:8px;padding:12px;font-size:13px;line-height:1.6;margin-bottom:10px">${t.parecerUsuario||'—'}</div><div class="fc g8 ts"><span class="tm">Decisão:</span>${t.decisaoUsuario==='aprovado'?'<span class="badge bg">✓ Aprovado</span>':t.decisaoUsuario==='rejeitado'?'<span class="badge br">✗ Rejeitado</span>':'<span class="badge bk">Não informado</span>'}</div></div>
+    <div class="card mb-16" style="border-color:${t.decisaoSESMT?'var(--g200)':'#F0C060'}">
+      <div class="sectitle" style="border-color:${t.decisaoSESMT?'var(--g100)':'#F0D090'}">${t.decisaoSESMT?'Parecer do SESMT':'⚠ Aguardando Parecer SESMT'}</div>
+      ${t.decisaoSESMT?`<div style="font-size:13px;line-height:1.6;margin-bottom:12px">${t.parecerSESMT}</div><div class="fb ts"><div class="fc g8"><span class="tm">Decisão:</span>${t.decisaoSESMT==='aprovado'?'<span class="badge bg">✓ Aprovado</span>':'<span class="badge br">✗ Rejeitado</span>'}</div><div class="tm">${t.responsavelSESMT} · ${fmtD(t.dataSESMT)}</div></div>
+      `:`<div class="ts" style="color:var(--amber-d);margin-bottom:14px;line-height:1.6">Aguardando parecer do responsável técnico.</div>
+        <div class="fc g8 fw">
+          <button class="btn btn-sm" onclick="S.sesmtD='';nav('sesmt')">Registrar diretamente</button>
+          <button class="btn btn-amber btn-sm" onclick="genSesmtCode()">${t.sesmtCode?'Ver código SESMT':'Gerar código SESMT externo'}</button>
+        </div>
+        ${t.sesmtCode?`<div style="margin-top:14px;padding:14px;background:var(--amber-l);border-radius:10px;border:1.5px solid #F0C060">
+          <div class="ts mb8" style="color:var(--amber-d);font-weight:500">Código gerado — envie ao responsável de segurança:</div>
+          <div class="code-box amber mb12">${t.sesmtCode}</div>
+          ${sharePanel(t.sesmtCode,'sesmt','Link para registro do parecer SESMT:','Registre o parecer técnico do EPI pelo link:')}
+          <div class="tx mt8" style="color:var(--amber-d);opacity:.8">O responsável abre o link, vê o resumo e preenche o parecer sem precisar de senha.</div>
+        </div>`:''}`}
+    </div>
+    ${t.editHistory?.length?`<div class="card"><div class="sectitle">Histórico de edições</div>${t.editHistory.map(h=>`<div class="fb ts tm" style="padding:6px 0;border-bottom:1px solid var(--g100)"><span>Editado por ${h.by}</span><span>${h.ts}</span></div>`).join('')}</div>`:'' }
+  </div>
+  ${vFooter()}`;
+}
+
+// ── SESMT DIRECT ────────────────────────────────────────
+function vSesmt(){
+  const t=S.sel;
+  return vHeader('detail','Parecer SESMT',t?.epi+' · '+t?.empresa)+`
+  <div style="max-width:540px;margin:26px auto;padding:0 20px">
+    <div class="fg"><label class="lbl req">Parecer técnico</label><textarea id="sp" placeholder="Análise técnica, restrições e recomendações..." style="min-height:130px"></textarea></div>
+    <div class="fg"><label class="lbl req" style="margin-bottom:12px">Decisão</label><div class="fl g8">
+      <button class="dbtn ap ${S.sesmtD==='aprovado'?'on':''}" onclick="S.sesmtD='aprovado';R()"><div style="font-size:24px;margin-bottom:6px">✓</div>Aprovado<div class="tx mt4" style="opacity:.7">EPI apto</div></button>
+      <button class="dbtn rj ${S.sesmtD==='rejeitado'?'on':''}" onclick="S.sesmtD='rejeitado';R()"><div style="font-size:24px;margin-bottom:6px">✗</div>Rejeitado<div class="tx mt4" style="opacity:.7">Não apto</div></button>
+    </div></div>
+    <div class="g2"><div class="fg" style="margin:0"><label class="lbl req">Responsável Técnico</label><input id="sr" placeholder="Nome, CRM ou CREA"></div><div class="fg" style="margin:0"><label class="lbl">Data</label><input id="sd" type="date" value="${new Date().toISOString().split('T')[0]}"></div></div>
+    <div class="fc g8 mt16"><button class="btn" onclick="nav('detail')">Cancelar</button><button class="btn btn-primary f1" onclick="saveSESMT()">Salvar Parecer</button></div>
+  </div>
+  ${vFooter()}`;
+}
+
+// ── SESMT REVIEW (via código) ────────────────────────────
+function vSesmtReview(){
+  const t=S.sesmtRevTest;if(!t)return'';
+  return vHeader(null,'Revisão SESMT',t.epi+' · '+t.empresa)+`
+  <div class="banner ban-amber">Você recebeu acesso via código de revisão — preencha o parecer técnico abaixo</div>
+  <div style="max-width:760px;margin:0 auto;padding:20px">
+    <div class="card mb-16">
+      <div class="sectitle">Resumo da ficha</div>
+      <div class="g3 mb12">${fld('EPI',t.epi)}${fld('Referência',t.referencia)}${fld('Empresa',t.empresa)}${fld('Usuário',t.nomeUsuario)}${fld('Área',t.area)}${fld('Período',t.dataInicio?fmtD(t.dataInicio)+' → '+fmtD(t.dataTermino):'—')}</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px">${CRIT.map(c=>`<div style="background:var(--g50);border:1px solid var(--g200);border-radius:6px;padding:8px"><div style="font-size:10px;color:var(--g400);margin-bottom:4px">${c.label}</div>${rbadge(t.avaliacao?.[c.key])}</div>`).join('')}</div>
+      <div style="font-size:11px;color:var(--g400);font-weight:600;margin-bottom:6px">PARECER DO USUÁRIO</div>
+      <div style="background:var(--g50);border-radius:8px;padding:11px;font-size:13px;line-height:1.6">${t.parecerUsuario||'—'}</div>
+    </div>
+    <div class="card">
+      <div class="sectitle" style="color:var(--amber-d);border-color:#F0D090">Seu Parecer Técnico</div>
+      <div class="fg"><label class="lbl req">Parecer do SESMT</label><textarea id="srp" placeholder="Análise técnica, recomendações, restrições ou justificativa de reprovação..." style="min-height:130px"></textarea></div>
+      <div class="fg"><label class="lbl req" style="margin-bottom:12px">Decisão técnica</label><div class="fl g8">
+        <button class="dbtn ap ${S.sesmtD2==='aprovado'?'on':''}" onclick="S.sesmtD2='aprovado';R()"><div style="font-size:22px;margin-bottom:5px">✓</div>Aprovado<div class="tx mt4" style="opacity:.7">EPI apto</div></button>
+        <button class="dbtn rj ${S.sesmtD2==='rejeitado'?'on':''}" onclick="S.sesmtD2='rejeitado';R()"><div style="font-size:22px;margin-bottom:5px">✗</div>Rejeitado<div class="tx mt4" style="opacity:.7">Não apto</div></button>
+      </div></div>
+      <div class="g2"><div class="fg" style="margin:0"><label class="lbl req">Responsável Técnico</label><input id="srr" placeholder="Nome, CRM ou CREA"></div><div class="fg" style="margin:0"><label class="lbl">Data</label><input id="srd" type="date" value="${new Date().toISOString().split('T')[0]}"></div></div>
+      <div class="fc g8 mt16"><button class="btn" onclick="nav('home')">Cancelar</button><button class="btn btn-primary f1" onclick="saveSesmtRev()">Registrar Parecer Técnico</button></div>
+    </div>
+  </div>
+  ${vFooter()}`;
+}
+
+// ── PORTAL ─────────────────────────────────────────────
+function vPortal(){
+  const co=S.portalCompany;
+  const tests=S.tests.filter(t=>t.empresa===co.empresa);
+  return vHeader(null,'Portal — '+co.empresa,tests.length+' teste(s) disponível(is)')+`
+  <div style="max-width:860px;margin:0 auto;padding:20px">
+    ${tests.length===0?`<div class="empty">📋 Nenhum teste registrado para esta empresa.</div>`:
+    tests.map(t=>`<div class="card card-p mb12" onclick="S.selPT=S.tests.find(x=>x.id==='${t.id}');S.view='portalDetail';window.scrollTo(0,0);R()">
+      <div class="fb mb12"><div><div class="fw6" style="font-size:14px">${t.epi}</div><div class="tx tm mt4">${[t.referencia,t.ca?'CA '+t.ca:''].filter(Boolean).join(' · ')}</div></div>${sbadge(t)}</div>
+      <div class="g3">${fld('Usuário',t.nomeUsuario+(t.cargo?' · '+t.cargo:''))}${fld('Período',t.dataInicio?fmtD(t.dataInicio)+' → '+fmtD(t.dataTermino):fmtD(t.createdAt))}${fld('Avaliação geral',abadge(t.avaliacao))}</div>
+    </div>`).join('')}
+  </div>
+  ${vFooter()}`;
+}
+function vPortalDetail(){
+  const t=S.selPT;if(!t)return'';
+  return vHeader(null,t.epi,t.empresa)+`
+  <div style="max-width:760px;margin:0 auto;padding:20px">
+    <div style="margin-bottom:14px"><button class="btn btn-sm" onclick="S.view='portal';window.scrollTo(0,0);R()">← Voltar ao portal</button></div>
+    <div class="card mb-16"><div class="sectitle">Equipamento testado</div><div class="g3">${fld('EPI',t.epi)}${fld('Referência',t.referencia)}${fld('CA',t.ca)}${fld('Amostras',t.amostras)}${fld('Fornecedor',t.fornecedor)}${fld('Entrega',fmtD(t.dataEntrega))}</div></div>
+    <div class="card mb-16"><div class="sectitle">Avaliação por critério</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">${CRIT.map(c=>`<div style="background:var(--g50);border:1.5px solid var(--g200);border-radius:8px;padding:10px"><div style="font-size:11px;color:var(--g400);margin-bottom:7px">${c.label}</div>${rbadge(t.avaliacao?.[c.key])}</div>`).join('')}</div><div style="background:var(--g50);border-radius:8px;padding:11px;font-size:13px;line-height:1.6;margin-bottom:10px">${t.parecerUsuario||'—'}</div></div>
+    <div class="card" style="border-color:${t.decisaoSESMT?'var(--g200)':'#F0C060'}">
+      <div class="sectitle" style="border-color:${t.decisaoSESMT?'var(--g100)':'#F0D090'}">${t.decisaoSESMT?'Parecer Técnico SESMT':'Aguardando Parecer SESMT'}</div>
+      ${t.decisaoSESMT?`<div style="font-size:13px;line-height:1.6;margin-bottom:12px">${t.parecerSESMT}</div><div class="fb ts"><div class="fc g8"><span class="tm">Decisão:</span>${t.decisaoSESMT==='aprovado'?'<span class="badge bg">✓ Aprovado</span>':'<span class="badge br">✗ Rejeitado</span>'}</div><div class="tm">${t.responsavelSESMT} · ${fmtD(t.dataSESMT)}</div></div>`:
+      `<div class="ts" style="color:var(--amber-d)">O parecer técnico ainda está pendente de aprovação.</div>`}
+    </div>
+  </div>
+  ${vFooter()}`;
+}
+
+// ── FORM ───────────────────────────────────────────────
+function vForm(){
+  const{step,d,editId,codeLock}=S.form,isEdit=!!editId;
+  const sh=STEPS.map((s,i)=>`${i>0?`<div class="sline ${step>i+1?'don':''}"></div>`:''}<div class="fc g8"><div class="snum ${step>i+1?'don':step===i+1?'act':''}">${step>i+1?'✓':i+1}</div><div class="slbl ${step===i+1?'act':''} hm">${s}</div></div>`).join('');
+  const cancelAct=step===1?(isEdit?"nav('detail')":(codeLock?"nav('formEntry')":`nav('home')`)):`fBack()`;
+  return vHeader()+`
+  <div class="sbar">${sh}</div>
+  ${isEdit?`<div class="banner ban-blue">✎ Modo de edição — ${editId}</div>`:''}
+  ${codeLock&&step>1?`<div class="banner ban-green">✓ EPI pré-configurado via código de acesso</div>`:''}
+  <div style="max-width:660px;margin:24px auto;padding:0 20px pxs">
+    ${step===1?vS1(d,codeLock):step===2?vS2(d):step===3?vS3(d):vS4(d)}
+  </div>
+  <div style="position:sticky;bottom:0;background:var(--w);border-top:1.5px solid var(--g200);padding:12px 20px;display:flex;align-items:center;justify-content:space-between">
+    <button class="btn" onclick="${cancelAct}">${step===1?'Cancelar':'← Voltar'}</button>
+    <div class="ts tm">Passo ${step} de 4</div>
+    <button class="btn btn-primary" onclick="${step<4?'fNext()':'submitForm()'}">${step<4?'Continuar →':isEdit?'Salvar':'Enviar ficha ✓'}</button>
+  </div>
+  ${vFooter()}`;
+}
+function vS1(d,lock){const a=lock?'readonly':'';return`
+  <div style="font-size:20px;font-weight:600;margin-bottom:4px">Dados do Equipamento</div>
+  <div class="ts tm mb20">${lock?'EPI configurado pela Uniluvas — campos somente leitura.':'Informe os dados do EPI enviado para avaliação.'}</div>
+  <div class="fg"><label class="lbl req">Nome do EPI</label><input id="f_epi" value="${d.epi}" ${a} placeholder="Ex: Luva de proteção mecânica"></div>
+  <div class="g2 mb12"><div class="fg" style="margin:0"><label class="lbl">Referência</label><input id="f_referencia" value="${d.referencia}" ${a} placeholder="Código"></div><div class="fg" style="margin:0"><label class="lbl">CA</label><input id="f_ca" value="${d.ca}" ${a} placeholder="Ex: 12345"></div></div>
+  <div class="g2 mb12"><div class="fg" style="margin:0"><label class="lbl">Nº amostras</label><input id="f_amostras" type="number" value="${d.amostras}"></div><div class="fg" style="margin:0"><label class="lbl">Data de entrega</label><input id="f_dataEntrega" type="date" value="${d.dataEntrega}"></div></div>
+  <div class="fg"><label class="lbl">Características</label><textarea id="f_caracteristicas" ${a} placeholder="Material, tamanho, especificações...">${d.caracteristicas}</textarea></div>
+  <div class="g2"><div class="fg" style="margin:0"><label class="lbl">Fornecedor</label><input id="f_fornecedor" value="${d.fornecedor}" ${a} placeholder="Nome"></div><div class="fg" style="margin:0"><label class="lbl">Contato</label><input id="f_contatoFornecedor" value="${d.contatoFornecedor}" placeholder="Tel / email"></div></div>`;}
+function vS2(d){return`
+  <div style="font-size:20px;font-weight:600;margin-bottom:4px">Cliente e Teste</div>
+  <div class="ts tm mb20">Empresa, usuário e período de avaliação em campo</div>
+  <div class="sectitle">Dados do cliente</div>
+  <div class="g2 mb16"><div class="fg" style="margin:0"><label class="lbl req">Empresa</label><input id="f_empresa" value="${d.empresa}" placeholder="Nome da empresa"></div><div class="fg" style="margin:0"><label class="lbl req">Contato</label><input id="f_contato" value="${d.contato}" placeholder="Responsável"></div></div>
+  <div class="sectitle">Usuário testador</div>
+  <div class="g2 mb12"><div class="fg" style="margin:0"><label class="lbl req">Nome</label><input id="f_nomeUsuario" value="${d.nomeUsuario}" placeholder="Quem utilizou o EPI"></div><div class="fg" style="margin:0"><label class="lbl">Cargo</label><input id="f_cargo" value="${d.cargo}" placeholder="Função"></div></div>
+  <div class="g2 mb12"><div class="fg" style="margin:0"><label class="lbl">Matrícula</label><input id="f_matricula" value="${d.matricula}"></div><div class="fg" style="margin:0"><label class="lbl">Área</label><input id="f_area" value="${d.area}" placeholder="Setor / área"></div></div>
+  <div class="fg"><label class="lbl">Atividade executada</label><input id="f_atividade" value="${d.atividade}" placeholder="Tipo de atividade no teste"></div>
+  <div class="fg"><label class="lbl">Detalhamento das condições</label><textarea id="f_detalhamento" placeholder="Ambiente, exposição, riscos...">${d.detalhamento}</textarea></div>
+  <div class="sectitle">Período do teste</div>
+  <div class="g4"><div class="fg" style="margin:0"><label class="lbl">Início — Data</label><input id="f_dataInicio" type="date" value="${d.dataInicio}"></div><div class="fg" style="margin:0"><label class="lbl">— Hora</label><input id="f_horaInicio" type="time" value="${d.horaInicio}"></div><div class="fg" style="margin:0"><label class="lbl">Término — Data</label><input id="f_dataTermino" type="date" value="${d.dataTermino}"></div><div class="fg" style="margin:0"><label class="lbl">— Hora</label><input id="f_horaTermino" type="time" value="${d.horaTermino}"></div></div>`;}
+function vS3(d){
+  const ri=(key,val,lbl)=>{const sel=d[key]===val;const ico=sel?(val==='A'?'✓ ':val==='AR'?'⚠ ':'✗ '):'';return`<button class="rbtn ${val}${sel?' on':''}" onclick="setRating('${key}','${val}')">${ico}${lbl}</button>`;};
+  return`<div style="font-size:20px;font-weight:600;margin-bottom:4px">Avaliação do EPI</div>
+  <div class="ts tm mb16">Classifique cada critério com base na experiência real em campo</div>
+  <div class="fc g8 mb20 fw">
+    <span style="background:var(--green);color:#fff;padding:4px 11px;border-radius:99px;font-size:11px;font-weight:600">✓ A — Aprovado</span>
+    <span style="background:#E89B00;color:#fff;padding:4px 11px;border-radius:99px;font-size:11px;font-weight:600">⚠ AR — Com restrições</span>
+    <span style="background:var(--red);color:#fff;padding:4px 11px;border-radius:99px;font-size:11px;font-weight:600">✗ R — Rejeitado</span>
+  </div>
+  <div class="g2" style="gap:10px">${CRIT.map(c=>`<div class="ritem"><div class="rlbl">${c.label}</div><div class="rbtns">${ri(c.key,'A','A — Aprovado')}${ri(c.key,'AR','AR')}${ri(c.key,'R','R')}</div></div>`).join('')}</div>`;}
+function vS4(d){return`
+  <div style="font-size:20px;font-weight:600;margin-bottom:4px">Parecer do Usuário</div>
+  <div class="ts tm mb20">Registre sua experiência e dê o veredicto final</div>
+  <div class="fg"><label class="lbl">Comentários e observações</label><textarea id="f_parecerUsuario" placeholder="Pontos positivos, negativos, situações de falha e sugestões..." style="min-height:120px">${d.parecerUsuario}</textarea></div>
+  <div class="fg"><label class="lbl fw5" style="font-size:13px;margin-bottom:12px">Decisão final</label><div class="fl g8">
+    <button class="dbtn ap ${d.decisaoUsuario==='aprovado'?'on':''}" onclick="setDec('aprovado')"><div style="font-size:26px;margin-bottom:7px">✓</div>Aprovado<div class="tx mt4" style="opacity:.7">EPI atende</div></button>
+    <button class="dbtn rj ${d.decisaoUsuario==='rejeitado'?'on':''}" onclick="setDec('rejeitado')"><div style="font-size:26px;margin-bottom:7px">✗</div>Rejeitado<div class="tx mt4" style="opacity:.7">Não atende</div></button>
+  </div></div>
+  <div class="card" style="background:var(--g50);margin-top:18px;border-color:var(--g200)"><div class="ts fw5 mb8">Resumo</div><div class="ts tm" style="line-height:2"><strong style="color:var(--g700)">EPI:</strong> ${d.epi||'—'} &nbsp;·&nbsp; <strong style="color:var(--g700)">Empresa:</strong> ${d.empresa||'—'} &nbsp;·&nbsp; <strong style="color:var(--g700)">Critérios:</strong> ${CRIT.filter(c=>d[c.key]).length}/${CRIT.length}</div></div>`;}
+
+// ── SUCCESS ────────────────────────────────────────────
+function vSuccess(){return vHeader()+`
+  <div style="display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 96px);padding:20px">
+    <div style="text-align:center;max-width:420px">
+      <div style="width:72px;height:72px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px;color:var(--green);animation:popIn .4s cubic-bezier(.34,1.56,.64,1)">✓</div>
+      <div style="font-size:24px;font-weight:600;margin-bottom:8px">Ficha enviada com sucesso!</div>
+      <div class="ts tm mb24" style="line-height:1.6">Obrigado pelo preenchimento. A equipe Uniluvas irá analisar e registrar o parecer técnico.</div>
+      <div class="fc g8" style="justify-content:center;flex-wrap:wrap"><button class="btn btn-primary" onclick="nav('form')">Avaliar outro EPI</button><button class="btn" onclick="nav('home')">Voltar ao início</button></div>
+    </div>
+  </div>
+  ${vFooter()}`;}
+function vSesmtDone(){return vHeader()+`
+  <div style="display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 96px);padding:20px">
+    <div style="text-align:center;max-width:420px">
+      <div style="width:72px;height:72px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px;color:var(--green);animation:popIn .4s cubic-bezier(.34,1.56,.64,1)">✓</div>
+      <div style="font-size:24px;font-weight:600;margin-bottom:8px">Parecer SESMT registrado!</div>
+      <div class="ts tm mb24" style="line-height:1.6">O parecer técnico foi salvo. A Uniluvas foi notificada e o status da ficha foi atualizado.</div>
+      <button class="btn btn-primary" onclick="nav('home')">Voltar ao início</button>
+    </div>
+  </div>
+  ${vFooter()}`;}
+
+// ── RENDER ─────────────────────────────────────────────
+function R(){
+  document.getElementById('app').innerHTML=({
+    home:vHome,adminAuth:vAuth,admin:vAdmin,detail:vDetail,
+    editForm:vForm,sesmt:vSesmt,sesmtReview:vSesmtReview,sesmtDone:vSesmtDone,
+    form:vForm,success:vSuccess,portal:vPortal,portalDetail:vPortalDetail,
+    formEntry:()=>vCodeEntry({role:'FUNCIONÁRIO',title:'Código de Acesso',desc:'Insira o código enviado pela Uniluvas para ter o EPI pré-preenchido',ibg:'background:var(--amber-l)',icon:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" fill="#FEF3DC" stroke="#C07A00" stroke-width="1.5"/><path d="M9 11V7a3 3 0 016 0v4" stroke="#C07A00" stroke-width="1.5" fill="none"/></svg>',sk:'formCode',ek:'formCodeErr',fn:'applyFormCode'}),
+    portalEntry:()=>vCodeEntry({role:'CLIENTE',title:'Portal da Empresa',desc:'Insira o código da empresa para acessar os resultados dos testes de EPI',ibg:'background:var(--blue-l)',icon:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" fill="#DBEAFE"/><rect x="3" y="5" width="18" height="14" rx="2" stroke="#1A6EBB" stroke-width="1.5"/><path d="M7 10h10M7 14h6" stroke="#1A6EBB" stroke-width="1.5" stroke-linecap="round"/></svg>',sk:'portalCode',ek:'portalCodeErr',fn:'lookupPortal'}),
+    sesmtEntry:()=>vCodeEntry({role:'SESMT / SEGURANÇA',title:'Revisão de Parecer',desc:'Insira o código de revisão para registrar o parecer técnico do EPI',ibg:'background:var(--amber-l)',icon:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3L14.5 9H20l-4.6 3.3 1.7 5.5L12 14.5 6.9 17.8l1.7-5.5L4 9h5.5z" fill="#FEF3DC" stroke="#C07A00" stroke-width="1.3"/></svg>',sk:'sesmtCode',ek:'sesmtCodeErr',fn:'lookupSesmtCode'}),
+  }[S.view]||vHome)()+vToast();
+  setTimeout(()=>{const el=document.getElementById('ci');if(el)el.focus();},80);
+}
+
+// ── BOOTSTRAP ──────────────────────────────────────────
+(async()=>{
+  await initData();
+  handleUrl();
+  R();
+})();
+window.addEventListener('popstate',()=>{handleUrl();R();});
+</script>
+</body>
+</html>
