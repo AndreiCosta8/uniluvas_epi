@@ -205,8 +205,9 @@ function hasFb(){return!!getFbUrl();}
 // ── INIT ───────────────────────────────────────────────
 async function initData(){
   S.adminPwd=ld('pwd','uniluvas');
-  S.baseUrl=ld('baseUrl','');
-  S.fbUrl=ld('fburl','');
+  // URLs fixas — todos os dispositivos usam o mesmo banco automaticamente
+  S.fbUrl=ld('fburl','https://uniluvas-teste-default-rtdb.firebaseio.com');
+  S.baseUrl=ld('baseUrl','https://uniluvas-epi.netlify.app');
   if(hasFb()){
     // Load from Firebase (shared cloud) — show loading state
     document.getElementById('app').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:var(--f);font-size:13px;color:var(--g400)">Carregando dados...</div>';
