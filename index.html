@@ -385,16 +385,19 @@ function submitForm(){
   }else{
     const t={id:genId(),createdAt:new Date().toISOString().split('T')[0],codigoAcesso:S.form.codeLock?(S.formCode||''):'',epi:d.epi,amostras:d.amostras,dataEntrega:d.dataEntrega,referencia:d.referencia,ca:d.ca,caracteristicas:d.caracteristicas,fornecedor:d.fornecedor,contatoFornecedor:d.contatoFornecedor,empresa:d.empresa,contato:d.contato,nomeUsuario:d.nomeUsuario,cargo:d.cargo,matricula:d.matricula,area:d.area,atividade:d.atividade,detalhamento:d.detalhamento,dataInicio:d.dataInicio,dataTermino:d.dataTermino,avaliacao:av,parecerUsuario:d.parecerUsuario,decisaoUsuario:d.decisaoUsuario,assinaturaNome:d.assinaturaNome,assinaturaCpf:d.assinaturaCpf,parecerSESMT:null,decisaoSESMT:null,responsavelSESMT:null,dataSESMT:null,sesmtCode:null,editHistory:[]};
     S.tests.unshift(t);persist();
-    // Notificação por e-mail
-    if(S.ejsKey&&S.ejsSvc&&S.ejsTpl&&S.ejsEmails){
-      const _em=S.ejsEmails.split(',').map(x=>x.trim()).filter(Boolean);
-      _em.forEach(addr=>emailjs.send(S.ejsSvc,S.ejsTpl,{
-        to_email:addr,ficha_id:t.id,epi:t.epi,empresa:t.empresa,
-        usuario:t.nomeUsuario,
-        decisao:t.decisaoUsuario==='aprovado'?'Aprovado':'Rejeitado',
-        data:t.createdAt,link:S.baseUrl+'?view=admin'
-      },{publicKey:S.ejsKey}).catch(e=>console.error('EJS err:',e)));
-    }
+    // Notificação por e-mail (credenciais fixas — funciona em qualquer dispositivo)
+    try{
+      emailjs.init({publicKey:'VlfCd389hV00z53lU'});
+      const _addrs=('andrei.costa@uniluvas.com.br').split(',').map(x=>x.trim()).filter(Boolean);
+      _addrs.forEach(addr=>{
+        emailjs.send('service_9l9iupd','template_lkotw6h',{
+          to_email:addr,ficha_id:t.id,epi:t.epi,empresa:t.empresa,
+          usuario:t.nomeUsuario,
+          decisao:t.decisaoUsuario==='aprovado'?'Aprovado':'Rejeitado',
+          data:t.createdAt,link:'https://uniluvas-epi.netlify.app?view=admin'
+        },{publicKey:'VlfCd389hV00z53lU'}).then(r=>console.log('Email ok:',r.status)).catch(e=>console.error('Email err:',e));
+      });
+    }catch(e){console.error('Email setup err:',e);}
     S.view='success';window.scrollTo(0,0);R();
   }
 }
