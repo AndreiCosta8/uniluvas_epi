@@ -491,6 +491,26 @@ async function lookupSesmtCode(){
   if(freshTests)S.tests=freshTests;
   S.sesmtRevTest=t;S.sesmtD2='';S.sesmtCodeErr='';S.view='sesmtReview';window.scrollTo(0,0);R();
 }
+async function testEmail(){
+  const key=S.ejsKey,svc=S.ejsSvc,tpl=S.ejsTpl,emails=S.ejsEmails;
+  if(!key||!svc||!tpl||!emails){
+    alert('Preencha e salve todos os campos do EmailJS antes de testar.');return;
+  }
+  showToast('Enviando e-mail de teste...');
+  try{
+    emailjs.init({publicKey:key});
+    const em=emails.split(',')[0].trim();
+    const r=await emailjs.send(svc,tpl,{
+      to_email:em,ficha_id:'TESTE-001',epi:'EPI de Teste',
+      empresa:'Uniluvas Teste',usuario:'Admin',decisao:'Aprovado',
+      data:new Date().toLocaleDateString('pt-BR'),
+      link:S.baseUrl+'?view=admin'
+    },{publicKey:key});
+    alert('✅ E-mail enviado com sucesso para '+em+'!\nStatus: '+r.status+' — '+r.text);
+  }catch(err){
+    alert('❌ Erro ao enviar:\n'+JSON.stringify(err));
+  }
+}
 async function saveSettings(){
   const url=document.getElementById('su')?.value||'';
   const fb=document.getElementById('sfb')?.value||'';
@@ -921,7 +941,7 @@ function vAConfig(){
       <div class="divider"></div>
       <div style="font-size:14px;font-weight:600;margin-bottom:4px">Alterar senha de acesso</div>
       <div class="fg mt8"><label class="lbl">Nova senha (mín. 4 caracteres)</label><input id="spwd" type="password" placeholder="Deixe em branco para manter a atual"></div>
-      <button class="btn btn-primary" onclick="saveSettings()">Salvar configurações</button>
+      <div class="fc g8"><button class="btn btn-primary" onclick="saveSettings()">Salvar configurações</button><button class="btn" onclick="testEmail()">📧 Testar e-mail</button></div>
     </div>
     <!-- Links diretos -->
     <div class="card">
