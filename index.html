@@ -215,7 +215,7 @@ async function initData(){
   try{emailjs.init({publicKey:S.ejsKey});}catch(e){}
   // URLs fixas — todos os dispositivos usam o mesmo banco automaticamente
   S.fbUrl=ld('fburl','https://uniluvas-teste-default-rtdb.firebaseio.com');
-  S.baseUrl=ld('baseUrl','https://uniluvas-epi.netlify.app');
+  S.baseUrl=ld('baseUrl','https://andreicosta8.github.io/uniluvas_epi');
   if(hasFb()){
     // Load from Firebase (shared cloud) — show loading state
     document.getElementById('app').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:var(--f);font-size:13px;color:var(--g400)">Carregando dados...</div>';
@@ -394,7 +394,7 @@ function submitForm(){
           to_email:addr,ficha_id:t.id,epi:t.epi,empresa:t.empresa,
           usuario:t.nomeUsuario,
           decisao:t.decisaoUsuario==='aprovado'?'Aprovado':'Rejeitado',
-          data:t.createdAt,link:'https://uniluvas-epi.netlify.app?view=admin'
+          data:t.createdAt,link:'https://andreicosta8.github.io/uniluvas_epi?view=admin'
         },{publicKey:'VlfCd389hV00z53lU'}).then(r=>console.log('Email ok:',r.status)).catch(e=>console.error('Email err:',e));
       });
     }catch(e){console.error('Email setup err:',e);}
