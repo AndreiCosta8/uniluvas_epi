@@ -393,147 +393,18 @@ function submitForm(){
     S.tests.unshift(t);persist();
     // Notificação por e-mail
     if(S.ejsKey&&S.ejsSvc&&S.ejsTpl&&S.ejsEmails){
-      try{const emails=S.ejsEmails.split(',').map(e=>e.trim()).filter(Boolean);for(const em of emails){emailjs.send(S.ejsSvc,S.ejsTpl,{to_email:em,ficha_id:t.id,epi:t.epi,empresa:t.empresa,usuario:t.nomeUsuario,decisao:t.decisaoUsuario==='aprovado'?'Aprovado':'Rejeitado',data:t.createdAt,link:S.baseUrl+'?view=admin'},{publicKey:S.ejsKey});}}catch(e){}
+      const _emails=S.ejsEmails.split(',').map(e=>e.trim()).filter(Boolean);
+      _emails.forEach(em=>{
+        emailjs.send(S.ejsSvc,S.ejsTpl,{
+          to_email:em,ficha_id:t.id,epi:t.epi,empresa:t.empresa,
+          usuario:t.nomeUsuario,
+          decisao:t.decisaoUsuario==='aprovado'?'Aprovado':'Rejeitado',
+          data:t.createdAt,link:S.baseUrl+'?view=admin'
+        },{publicKey:S.ejsKey})
+        .then(r=>{console.log('EmailJS sent ok to '+em+' status:'+r.status);})
+        .catch(err=>{console.error('EmailJS error:',JSON.stringify(err));});
+      });
     }
-    S.view='success';window.scrollTo(0,0);R();
-  }
-}
-function saveSESMT(){
-  const p=document.getElementById('sp')?.value||'',r=document.getElementById('sr')?.value||'',dd=document.getElementById('sd')?.value||'';
-  if(!S.sesmtD){alert('Selecione a decisão.');return;}if(!r.trim()){alert('Informe o responsável.');return;}
-  const t=S.sel;t.parecerSESMT=p;t.decisaoSESMT=S.sesmtD;t.responsavelSESMT=r;t.dataSESMT=dd;
-  const i=S.tests.findIndex(x=>x.id===t.id);if(i>=0)S.tests[i]=t;
-  persist();S.view='detail';showToast('Parecer SESMT registrado!');
-}
-function saveSesmtRev(){
-  const p=document.getElementById('srp')?.value||'',r=document.getElementById('srr')?.value||'',dd=document.getElementById('srd')?.value||'';
-  if(!S.sesmtD2){alert('Selecione a decisão.');return;}if(!r.trim()){alert('Informe o responsável.');return;}
-  // reload fresh from storage first
-  S.tests=ld('tests',S.tests);
-  const t=S.sesmtRevTest;t.parecerSESMT=p;t.decisaoSESMT=S.sesmtD2;t.responsavelSESMT=r;t.dataSESMT=dd;
-  const i=S.tests.findIndex(x=>x.id===t.id);if(i>=0)S.tests[i]=t;else S.tests.push(t);
-  persist();S.view='sesmtDone';window.scrollTo(0,0);R();
-}
-function createCode(){
-  const nc=S.newCode;if(!nc.epi.trim()){alert('Informe o nome do EPI.');return;}
-  const code=mkCode();
-  S.codes.unshift({code,epi:nc.epi,referencia:nc.referencia,ca:nc.ca,amostras:nc.amostras||'',dataEntrega:nc.dataEntrega||'',caracteristicas:nc.caracteristicas||'',fornecedor:nc.fornecedor||'',foto:nc.foto||'',createdAt:new Date().toISOString().split('T')[0]});
-  persistC();S.genCode=code;
-  S.batch.push({code,epi:nc.epi});
-  S.newCode={epi:'',referencia:'',ca:'',amostras:'',dataEntrega:'',caracteristicas:'',fornecedor:'',foto:''};  S.editCodeIdx=null;
-  R();
-}
-function clearBatch(){S.batch=[];S.genCode=null;R();}
-function editCode(idx){
-  S.editCodeIdx=idx;
-  const c=S.codes[idx];
-  S.newCode={epi:c.epi,referencia:c.referencia||'',ca:c.ca||'',amostras:c.amostras||'',dataEntrega:c.dataEntrega||'',caracteristicas:c.caracteristicas||'',fornecedor:c.fornecedor||'',foto:c.foto||''};
-  S.genCode=null;
-  // Scroll to top of codigos tab
-  window.scrollTo(0,0);R();
-}
-function saveCodeEdit(){
-  const nc=S.newCode;
-  if(!nc.epi.trim()){alert('Informe o nome do EPI.');return;}
-  const idx=S.editCodeIdx;
-  S.codes[idx]={...S.codes[idx],epi:nc.epi,referencia:nc.referencia,ca:nc.ca,amostras:nc.amostras||'',dataEntrega:nc.dataEntrega||'',caracteristicas:nc.caracteristicas||'',fornecedor:nc.fornecedor||'',foto:nc.foto||''};
-  persistC();
-  S.newCode={epi:'',referencia:'',ca:'',amostras:'',dataEntrega:'',caracteristicas:'',fornecedor:'',foto:''};
-  S.editCodeIdx=null;S.genCode=null;
-  showToast('Código atualizado!');R();
-}
-function handleFotoUpload(input){
-  const file=input.files[0];if(!file)return;
-  if(file.size>900000){alert('Imagem muito grande. Use uma foto menor que 900KB.');input.value='';return;}
-  const img=new Image();
-  const reader=new FileReader();
-  reader.onload=e=>{
-    img.onload=()=>{
-      const canvas=document.createElement('canvas');
-      const max=600;let w=img.width,h=img.height;
-      if(w>max){h=Math.round(h*max/w);w=max;}
-      if(h>max){w=Math.round(w*max/h);h=max;}
-      canvas.width=w;canvas.height=h;
-      canvas.getContext('2d').drawImage(img,0,0,w,h);
-      S.newCode.foto=canvas.toDataURL('image/jpeg',0.75);
-      R();
-    };
-    img.src=e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-function createPortal(){
-  const emp=S.newPortal.empresa.trim();if(!emp){alert('Informe o nome da empresa.');return;}
-  const code=mkCode();
-  S.portals.unshift({code,empresa:emp,createdAt:new Date().toISOString().split('T')[0]});
-  persistP();S.genPortalCode=code;S.newPortal={empresa:''};R();
-}
-function genSesmtCode(){
-  const t=S.sel;if(t.sesmtCode)return;
-  const code=mkCode();t.sesmtCode=code;
-  const i=S.tests.findIndex(x=>x.id===t.id);if(i>=0)S.tests[i]=t;
-  persist();showToast('Código SESMT gerado!');R();
-}
-function lookupPortal(){
-  const code=S.portalCode.trim().toUpperCase();
-  if(code.length!==6){S.portalCodeErr='Código deve ter 6 caracteres.';R();return;}
-  const pt=S.portals.find(p=>p.code===code);
-  if(!pt){S.portalCodeErr='Código não encontrado.';R();return;}
-  S.portalCompany=pt;S.portalCodeErr='';S.view='portal';R();
-}
-function applyFormCode(){
-  const code=S.formCode.trim().toUpperCase();
-  if(code.length!==6){S.formCodeErr='Código deve ter 6 caracteres.';R();return;}
-  const e=S.codes.find(c=>c.code===code);
-  if(!e){S.formCodeErr='Código não encontrado.';R();return;}
-  S.form.d.epi=e.epi;S.form.d.referencia=e.referencia;S.form.d.ca=e.ca;S.form.d.amostras=e.amostras||'';S.form.d.dataEntrega=e.dataEntrega||'';S.form.d.caracteristicas=e.caracteristicas||'';S.form.d.fornecedor=e.fornecedor||'';
-  S.form.codeLock=true;S.form.step=2;S.formCodeErr='';S.view='form';window.scrollTo(0,0);R();
-}
-async function lookupSesmtCode(){
-  const code=S.sesmtCode.trim().toUpperCase();
-  if(code.length!==6){S.sesmtCodeErr='Código deve ter 6 caracteres.';R();return;}
-  // Try cloud first, then localStorage
-  let freshTests=hasFb()?(await fbGet('tests'))||ld('tests',S.tests):ld('tests',S.tests);
-  if(freshTests)sv('tests',freshTests);
-  const t=(freshTests||S.tests).find(t=>(t.sesmtCode||'').toUpperCase()===code);
-  if(!t){S.sesmtCodeErr='Código não encontrado. Verifique o código com a equipe Uniluvas.';R();return;}
-  if(t.decisaoSESMT){S.sesmtCodeErr='Este parecer já foi registrado anteriormente.';R();return;}
-  if(freshTests)S.tests=freshTests;
-  S.sesmtRevTest=t;S.sesmtD2='';S.sesmtCodeErr='';S.view='sesmtReview';window.scrollTo(0,0);R();
-}
-async function testEmail(){
-  const key=S.ejsKey,svc=S.ejsSvc,tpl=S.ejsTpl,emails=S.ejsEmails;
-  if(!key||!svc||!tpl||!emails){
-    alert('Preencha e salve todos os campos do EmailJS antes de testar.');return;
-  }
-  showToast('Enviando e-mail de teste...');
-  try{
-    emailjs.init({publicKey:key});
-    const em=emails.split(',')[0].trim();
-    const r=await emailjs.send(svc,tpl,{
-      to_email:em,ficha_id:'TESTE-001',epi:'EPI de Teste',
-      empresa:'Uniluvas Teste',usuario:'Admin',decisao:'Aprovado',
-      data:new Date().toLocaleDateString('pt-BR'),
-      link:S.baseUrl+'?view=admin'
-    },{publicKey:key});
-    alert('✅ E-mail enviado com sucesso para '+em+'!\nStatus: '+r.status+' — '+r.text);
-  }catch(err){
-    alert('❌ Erro ao enviar:\n'+JSON.stringify(err));
-  }
-}
-async function saveSettings(){
-  const url=document.getElementById('su')?.value||'';
-  const fb=document.getElementById('sfb')?.value||'';
-  const pwd=document.getElementById('spwd')?.value||'';
-  const ek=document.getElementById('sEjsKey')?.value||'';
-  const es=document.getElementById('sEjsSvc')?.value||'';
-  const et=document.getElementById('sEjsTpl')?.value||'';
-  const ee=document.getElementById('sEjsEmail')?.value||'';
-  S.baseUrl=url.trim().replace(/\/$/,'');sv('baseUrl',S.baseUrl);
-  const newFb=fb.trim().replace(/\/$/,'');
-  if(newFb!==S.fbUrl){S.fbUrl=newFb;sv('fburl',S.fbUrl);}
-  if(pwd&&pwd.length>=4){S.adminPwd=pwd;sv('pwd',pwd);}
-  if(ek){S.ejsKey=ek;sv('ejsKey',ek);try{emailjs.init({publicKey:ek});}catch(e){}}
   if(es){S.ejsSvc=es;sv('ejsSvc',es);}
   if(et){S.ejsTpl=et;sv('ejsTpl',et);}
   if(ee){S.ejsEmails=ee;sv('ejsEmails',ee);}
