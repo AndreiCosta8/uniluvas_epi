@@ -185,11 +185,12 @@ let S={
   portalCode:'', portalCodeErr:'', portalCompany:null,
   formCode:'', formCodeErr:'',
   sesmtCode:'', sesmtCodeErr:'', sesmtRevTest:null,
-  newCode:{epi:'',referencia:'',ca:'',caracteristicas:'',fornecedor:'',foto:''},
+  newCode:{epi:'',referencia:'',ca:'',amostras:'',dataEntrega:'',caracteristicas:'',fornecedor:'',foto:''},
+  editCodeIdx:null,
   batch:[], genCode:null,
   newPortal:{empresa:''}, genPortalCode:null,
   toast:null,
-  ejsKey:'', ejsSvc:'', ejsTpl:'', ejsEmail:''
+  ejsKey:'', ejsSvc:'', ejsTpl:'', ejsEmails:''
 };
 
 // ── FIREBASE REALTIME DATABASE (REST, sem SDK) ─────────
@@ -207,7 +208,7 @@ function hasFb(){return!!getFbUrl();}
 // ── INIT ───────────────────────────────────────────────
 async function initData(){
   S.adminPwd=ld('pwd','uniluvas');
-  S.ejsKey=ld('ejsKey','');S.ejsSvc=ld('ejsSvc','');S.ejsTpl=ld('ejsTpl','');S.ejsEmail=ld('ejsEmail','');
+  S.ejsKey=ld('ejsKey','');S.ejsSvc=ld('ejsSvc','');S.ejsTpl=ld('ejsTpl','');S.ejsEmails=ld('ejsEmails','');
   if(S.ejsKey)try{emailjs.init(S.ejsKey)}catch(e){}
   // URLs fixas — todos os dispositivos usam o mesmo banco automaticamente
   S.fbUrl=ld('fburl','https://uniluvas-teste-default-rtdb.firebaseio.com');
@@ -270,7 +271,7 @@ function handleUrl(){
   if(view==='form'){
     if(code){
       const e=S.codes.find(c=>c.code===code);
-      if(e){S.form.d.epi=e.epi;S.form.d.referencia=e.referencia;S.form.d.ca=e.ca;S.form.d.caracteristicas=e.caracteristicas||'';S.form.d.fornecedor=e.fornecedor||'';S.form.codeLock=true;S.form.step=2;}
+      if(e){S.formCode=code;S.form.d.epi=e.epi;S.form.d.referencia=e.referencia;S.form.d.ca=e.ca;S.form.d.amostras=e.amostras||'';S.form.d.dataEntrega=e.dataEntrega||'';S.form.d.caracteristicas=e.caracteristicas||'';S.form.d.fornecedor=e.fornecedor||'';S.form.codeLock=true;S.form.step=2;}
     }
     S.view='form';
   }else if(view==='formblank'){S.view='form';}
@@ -381,8 +382,8 @@ function submitForm(){
     const t={id:genId(),createdAt:new Date().toISOString().split('T')[0],codigoAcesso:S.form.codeLock?(S.formCode||''):'',epi:d.epi,amostras:d.amostras,dataEntrega:d.dataEntrega,referencia:d.referencia,ca:d.ca,caracteristicas:d.caracteristicas,fornecedor:d.fornecedor,contatoFornecedor:d.contatoFornecedor,empresa:d.empresa,contato:d.contato,nomeUsuario:d.nomeUsuario,cargo:d.cargo,matricula:d.matricula,area:d.area,atividade:d.atividade,detalhamento:d.detalhamento,dataInicio:d.dataInicio,dataTermino:d.dataTermino,avaliacao:av,parecerUsuario:d.parecerUsuario,decisaoUsuario:d.decisaoUsuario,assinaturaNome:d.assinaturaNome,assinaturaCpf:d.assinaturaCpf,parecerSESMT:null,decisaoSESMT:null,responsavelSESMT:null,dataSESMT:null,sesmtCode:null,editHistory:[]};
     S.tests.unshift(t);persist();
     // Notificação por e-mail
-    if(S.ejsKey&&S.ejsSvc&&S.ejsTpl&&S.ejsEmail){
-      try{emailjs.send(S.ejsSvc,S.ejsTpl,{to_email:S.ejsEmail,ficha_id:t.id,epi:t.epi,empresa:t.empresa,usuario:t.nomeUsuario,decisao:t.decisaoUsuario==='aprovado'?'Aprovado':'Rejeitado',data:t.createdAt,link:S.baseUrl+'?view=admin'});}catch(e){}
+    if(S.ejsKey&&S.ejsSvc&&S.ejsTpl&&S.ejsEmails){
+      try{const emails=S.ejsEmails.split(',').map(e=>e.trim()).filter(Boolean);for(const em of emails){emailjs.send(S.ejsSvc,S.ejsTpl,{to_email:em,ficha_id:t.id,epi:t.epi,empresa:t.empresa,usuario:t.nomeUsuario,decisao:t.decisaoUsuario==='aprovado'?'Aprovado':'Rejeitado',data:t.createdAt,link:S.baseUrl+'?view=admin'});}}catch(e){}
     }
     S.view='success';window.scrollTo(0,0);R();
   }
@@ -406,13 +407,31 @@ function saveSesmtRev(){
 function createCode(){
   const nc=S.newCode;if(!nc.epi.trim()){alert('Informe o nome do EPI.');return;}
   const code=mkCode();
-  S.codes.unshift({code,epi:nc.epi,referencia:nc.referencia,ca:nc.ca,caracteristicas:nc.caracteristicas||'',fornecedor:nc.fornecedor||'',foto:nc.foto||'',createdAt:new Date().toISOString().split('T')[0]});
+  S.codes.unshift({code,epi:nc.epi,referencia:nc.referencia,ca:nc.ca,amostras:nc.amostras||'',dataEntrega:nc.dataEntrega||'',caracteristicas:nc.caracteristicas||'',fornecedor:nc.fornecedor||'',foto:nc.foto||'',createdAt:new Date().toISOString().split('T')[0]});
   persistC();S.genCode=code;
   S.batch.push({code,epi:nc.epi});
-  S.newCode={epi:'',referencia:'',ca:'',caracteristicas:'',fornecedor:'',foto:''};
+  S.newCode={epi:'',referencia:'',ca:'',amostras:'',dataEntrega:'',caracteristicas:'',fornecedor:'',foto:''};  S.editCodeIdx=null;
   R();
 }
 function clearBatch(){S.batch=[];S.genCode=null;R();}
+function editCode(idx){
+  S.editCodeIdx=idx;
+  const c=S.codes[idx];
+  S.newCode={epi:c.epi,referencia:c.referencia||'',ca:c.ca||'',amostras:c.amostras||'',dataEntrega:c.dataEntrega||'',caracteristicas:c.caracteristicas||'',fornecedor:c.fornecedor||'',foto:c.foto||''};
+  S.genCode=null;
+  // Scroll to top of codigos tab
+  window.scrollTo(0,0);R();
+}
+function saveCodeEdit(){
+  const nc=S.newCode;
+  if(!nc.epi.trim()){alert('Informe o nome do EPI.');return;}
+  const idx=S.editCodeIdx;
+  S.codes[idx]={...S.codes[idx],epi:nc.epi,referencia:nc.referencia,ca:nc.ca,amostras:nc.amostras||'',dataEntrega:nc.dataEntrega||'',caracteristicas:nc.caracteristicas||'',fornecedor:nc.fornecedor||'',foto:nc.foto||''};
+  persistC();
+  S.newCode={epi:'',referencia:'',ca:'',amostras:'',dataEntrega:'',caracteristicas:'',fornecedor:'',foto:''};
+  S.editCodeIdx=null;S.genCode=null;
+  showToast('Código atualizado!');R();
+}
 function handleFotoUpload(input){
   const file=input.files[0];if(!file)return;
   if(file.size>900000){alert('Imagem muito grande. Use uma foto menor que 900KB.');input.value='';return;}
@@ -457,7 +476,7 @@ function applyFormCode(){
   if(code.length!==6){S.formCodeErr='Código deve ter 6 caracteres.';R();return;}
   const e=S.codes.find(c=>c.code===code);
   if(!e){S.formCodeErr='Código não encontrado.';R();return;}
-  S.form.d.epi=e.epi;S.form.d.referencia=e.referencia;S.form.d.ca=e.ca;S.form.d.caracteristicas=e.caracteristicas||'';S.form.d.fornecedor=e.fornecedor||'';
+  S.form.d.epi=e.epi;S.form.d.referencia=e.referencia;S.form.d.ca=e.ca;S.form.d.amostras=e.amostras||'';S.form.d.dataEntrega=e.dataEntrega||'';S.form.d.caracteristicas=e.caracteristicas||'';S.form.d.fornecedor=e.fornecedor||'';
   S.form.codeLock=true;S.form.step=2;S.formCodeErr='';S.view='form';window.scrollTo(0,0);R();
 }
 async function lookupSesmtCode(){
@@ -487,7 +506,7 @@ async function saveSettings(){
   if(ek){S.ejsKey=ek;sv('ejsKey',ek);try{emailjs.init(ek);}catch(e){}}
   if(es){S.ejsSvc=es;sv('ejsSvc',es);}
   if(et){S.ejsTpl=et;sv('ejsTpl',et);}
-  if(ee){S.ejsEmail=ee;sv('ejsEmail',ee);}
+  if(ee){S.ejsEmails=ee;sv('ejsEmails',ee);}
   if(S.fbUrl&&newFb){showToast('Sincronizando...');await Promise.all([fbSet('tests',S.tests),fbSet('codes',S.codes),fbSet('portals',S.portals)]);}
   showToast('Configurações salvas!');
 }
@@ -726,9 +745,9 @@ function vACodigos(){
       </div>
     </div>
     <!-- NOVO CÓDIGO -->
-    <div class="card mb-20">
-      <div style="font-size:14px;font-weight:600;margin-bottom:4px">Gerar código para funcionário</div>
-      <div style="font-size:12px;color:var(--g400);margin-bottom:16px">Preencha os dados do EPI. O funcionário receberá o formulário com esses dados pré-preenchidos — ele avalia sem precisar saber o código do produto.</div>
+    <div class="card mb-20" style="${S.editCodeIdx!==null?'border-color:var(--blue);':'' }">
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px">${S.editCodeIdx!==null?'✎ Editando código '+S.codes[S.editCodeIdx]?.code:'Gerar código para funcionário'}</div>
+      <div style="font-size:12px;color:var(--g400);margin-bottom:16px">${S.editCodeIdx!==null?'Altere os dados abaixo e clique em salvar. O link existente continua funcionando com as informações atualizadas.':'Preencha os dados do EPI. O funcionário receberá o formulário com esses dados pré-preenchidos — ele avalia sem precisar saber o código do produto.'}</div>
       <div class="g2 mb12">
         <div class="fg" style="margin:0"><label class="lbl req">Nome do EPI</label><input placeholder="Ex: Luva de proteção mecânica" oninput="S.newCode.epi=this.value" value="${nc.epi}"></div>
         <div class="fg" style="margin:0"><label class="lbl">Referência / Modelo</label><input placeholder="Código interno" oninput="S.newCode.referencia=this.value" value="${nc.referencia}"></div>
@@ -736,6 +755,10 @@ function vACodigos(){
       <div class="g2 mb12">
         <div class="fg" style="margin:0"><label class="lbl">Número do CA</label><input placeholder="CA do produto" oninput="S.newCode.ca=this.value" value="${nc.ca}"></div>
         <div class="fg" style="margin:0"><label class="lbl">Fornecedor</label><input placeholder="Nome do fabricante" oninput="S.newCode.fornecedor=this.value" value="${nc.fornecedor}"></div>
+      </div>
+      <div class="g2 mb12">
+        <div class="fg" style="margin:0"><label class="lbl">Nº de amostras</label><input type="number" placeholder="Quantidade" oninput="S.newCode.amostras=this.value" value="${nc.amostras}"></div>
+        <div class="fg" style="margin:0"><label class="lbl">Data de entrega</label><input type="date" oninput="S.newCode.dataEntrega=this.value" value="${nc.dataEntrega}"></div>
       </div>
       <div class="fg"><label class="lbl">Características / Descrição</label><input placeholder="Material, tamanho, especificações..." oninput="S.newCode.caracteristicas=this.value" value="${nc.caracteristicas}"></div>
       <div class="fg"><label class="lbl">Foto do EPI <span class="tx tm">(opcional)</span></label>
@@ -751,8 +774,10 @@ function vACodigos(){
         </div>
       </div>
       <div class="fc g8 mt4">
-        <button class="btn btn-primary" onclick="createCode()">+ Gerar código</button>
-        ${S.batch.length>0?`<span class="tx tm">${S.batch.length} código${S.batch.length>1?'s':''} no lote</span><button class="btn btn-ghost ts" onclick="clearBatch()">Limpar lote</button>`:''}
+        ${S.editCodeIdx!==null
+          ? `<button class="btn btn-primary" onclick="saveCodeEdit()">💾 Salvar alterações</button><button class="btn" onclick="S.editCodeIdx=null;S.newCode={epi:'',referencia:'',ca:'',amostras:'',dataEntrega:'',caracteristicas:'',fornecedor:'',foto:''};R()">Cancelar</button>`
+          : `<button class="btn btn-primary" onclick="createCode()">+ Gerar código</button>${S.batch.length>0?'<span class="tx tm">'+S.batch.length+' código'+( S.batch.length>1?'s':'')+' no lote</span><button class="btn btn-ghost ts" onclick="clearBatch()">Limpar lote</button>':''}`
+        }
       </div>
       <!-- BATCH RESULT -->
       ${S.batch.length>0?`
@@ -778,7 +803,10 @@ function vACodigos(){
       ${S.codes.map(c=>{const u=makeUrl({view:'form',code:c.code});return`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--w);border:1.5px solid var(--g200);border-radius:10px;margin-bottom:8px">
         <div class="tag" style="background:var(--navy);color:#7DD3FC;font-size:14px;letter-spacing:.15em;padding:5px 10px">${c.code}</div>
         <div class="f1"><div class="fw5 ts">${c.epi}</div><div class="tx tm">${[c.referencia,c.ca?'CA '+c.ca:'',c.fornecedor].filter(Boolean).join(' · ')} · ${fmtD(c.createdAt)}</div></div>
-        ${u?`<div class="fc g6"><button class="btn btn-sm" onclick="copyText('${u}',this)">📋 Link</button>${waLink(u,'Avalie o EPI «'+c.epi+'» pelo link:')}</div>`:'' }
+        <div class="fc g6">
+          ${u?`<button class="btn btn-sm" onclick="copyText('${u}',this)">📋 Link</button>${waLink(u,'Avalie o EPI «'+c.epi+'» pelo link:')}`:''} 
+          <button class="btn btn-sm" onclick="editCode(${S.codes.indexOf(c)})">✎ Editar</button>
+        </div>
       </div>`;}).join('')}
     </div>
   </div>`;
@@ -858,7 +886,7 @@ function vAConfig(){
       </div>
       <div class="g2 mb12">
         <div class="fg" style="margin:0"><label class="lbl req">Template ID</label><input id="sEjsTpl" placeholder="Ex: template_xyz456" value="${S.ejsTpl}"></div>
-        <div class="fg" style="margin:0"><label class="lbl req">E-mail destino</label><input id="sEjsEmail" type="email" placeholder="seu@email.com" value="${S.ejsEmail}"></div>
+        <div class="fg" style="margin:0"><label class="lbl req">E-mails (separados por vírgula)</label><input id="sEjsEmail" placeholder="email1@gmail.com, email2@gmail.com" value="${S.ejsEmails}"></div>
       </div>
     </div>
     <!-- FIREBASE — banco de dados compartilhado -->
