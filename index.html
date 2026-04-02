@@ -209,7 +209,7 @@ function hasFb(){return!!getFbUrl();}
 async function initData(){
   S.adminPwd=ld('pwd','uniluvas');
   S.ejsKey=ld('ejsKey','');S.ejsSvc=ld('ejsSvc','');S.ejsTpl=ld('ejsTpl','');S.ejsEmails=ld('ejsEmails','');
-  if(S.ejsKey)try{emailjs.init(S.ejsKey)}catch(e){}
+  if(S.ejsKey)try{emailjs.init({publicKey:S.ejsKey});}catch(e){}
   // URLs fixas — todos os dispositivos usam o mesmo banco automaticamente
   S.fbUrl=ld('fburl','https://uniluvas-teste-default-rtdb.firebaseio.com');
   S.baseUrl=ld('baseUrl','https://uniluvas-epi.netlify.app');
@@ -383,7 +383,7 @@ function submitForm(){
     S.tests.unshift(t);persist();
     // Notificação por e-mail
     if(S.ejsKey&&S.ejsSvc&&S.ejsTpl&&S.ejsEmails){
-      try{const emails=S.ejsEmails.split(',').map(e=>e.trim()).filter(Boolean);for(const em of emails){emailjs.send(S.ejsSvc,S.ejsTpl,{to_email:em,ficha_id:t.id,epi:t.epi,empresa:t.empresa,usuario:t.nomeUsuario,decisao:t.decisaoUsuario==='aprovado'?'Aprovado':'Rejeitado',data:t.createdAt,link:S.baseUrl+'?view=admin'});}}catch(e){}
+      try{const emails=S.ejsEmails.split(',').map(e=>e.trim()).filter(Boolean);for(const em of emails){emailjs.send(S.ejsSvc,S.ejsTpl,{to_email:em,ficha_id:t.id,epi:t.epi,empresa:t.empresa,usuario:t.nomeUsuario,decisao:t.decisaoUsuario==='aprovado'?'Aprovado':'Rejeitado',data:t.createdAt,link:S.baseUrl+'?view=admin'},{publicKey:S.ejsKey});}}catch(e){}
     }
     S.view='success';window.scrollTo(0,0);R();
   }
@@ -503,7 +503,7 @@ async function saveSettings(){
   const newFb=fb.trim().replace(/\/$/,'');
   if(newFb!==S.fbUrl){S.fbUrl=newFb;sv('fburl',S.fbUrl);}
   if(pwd&&pwd.length>=4){S.adminPwd=pwd;sv('pwd',pwd);}
-  if(ek){S.ejsKey=ek;sv('ejsKey',ek);try{emailjs.init(ek);}catch(e){}}
+  if(ek){S.ejsKey=ek;sv('ejsKey',ek);try{emailjs.init({publicKey:ek});}catch(e){}}
   if(es){S.ejsSvc=es;sv('ejsSvc',es);}
   if(et){S.ejsTpl=et;sv('ejsTpl',et);}
   if(ee){S.ejsEmails=ee;sv('ejsEmails',ee);}
