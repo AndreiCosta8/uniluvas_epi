@@ -736,9 +736,9 @@ function vAFichas(){
       <option value="pendente" ${S.fSt==='pendente'?'selected':''}>Pendentes SESMT</option>
     </select>
     <input placeholder="Buscar empresa..." style="flex:1;max-width:200px" oninput="S.fEmp=this.value;R()" value="${S.fEmp}">
-    <input type="date" title="De" style="width:auto" oninput="S.fDateFrom=this.value;R()" value="${S.fDateFrom}">
+    <input typ    <input type="date" title="De" style="width:auto" oninput="S.fDateFrom=this.value;R()" value="${S.fDateFrom}">
     <input type="date" title="Até" style="width:auto" oninput="S.fDateTo=this.value;R()" value="${S.fDateTo}">
-    ${S.fDateFrom||S.fDateTo?'<button class="btn btn-ghost btn-sm ts" onclick="S.fDateFrom=\'\';S.fDateTo=\'\';R()">✕ Limpar datas</button>':''}
+    ${(S.fDateFrom||S.fDateTo)?`<button class="btn btn-ghost btn-sm ts" onclick="S.fDateFrom='';S.fDateTo='';R()">✕ Limpar</button>`:''}
     <div class="ts tm" style="margin-left:auto">${fl.length} ficha${fl.length!==1?'s':''}</div>
   </div>
   <div style="background:var(--w)">
