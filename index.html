@@ -6,6 +6,7 @@
 <title>Uniluvas — Testes de EPI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 :root{
   --navy:#0D1F35;--navy2:#163352;--blue:#1A6EBB;--blue-l:#E8F2FC;
@@ -171,7 +172,7 @@ const DPORTALS=[
 ];
 
 // ── STATE ──────────────────────────────────────────────
-function mkD(){return{epi:'',amostras:'',dataEntrega:'',referencia:'',ca:'',caracteristicas:'',fornecedor:'',contatoFornecedor:'',empresa:'',contato:'',nomeUsuario:'',cargo:'',matricula:'',area:'',atividade:'',detalhamento:'',dataInicio:'',horaInicio:'',dataTermino:'',horaTermino:'',resistencia:'',durabilidade:'',desempenho:'',higienizacao:'',adequacao:'',conforto:'',aderencia:'',isolacaoTermica:'',parecerUsuario:'',decisaoUsuario:''};}
+function mkD(){return{epi:'',amostras:'',dataEntrega:'',referencia:'',ca:'',caracteristicas:'',fornecedor:'',contatoFornecedor:'',empresa:'',contato:'',nomeUsuario:'',cargo:'',matricula:'',area:'',atividade:'',detalhamento:'',dataInicio:'',horaInicio:'',dataTermino:'',horaTermino:'',resistencia:'',durabilidade:'',desempenho:'',higienizacao:'',adequacao:'',conforto:'',aderencia:'',isolacaoTermica:'',parecerUsuario:'',decisaoUsuario:'',assinaturaNome:'',assinaturaCpf:''};}
 
 let S={
   view:'home', auth:false,
@@ -184,10 +185,11 @@ let S={
   portalCode:'', portalCodeErr:'', portalCompany:null,
   formCode:'', formCodeErr:'',
   sesmtCode:'', sesmtCodeErr:'', sesmtRevTest:null,
-  newCode:{epi:'',referencia:'',ca:'',caracteristicas:'',fornecedor:''},
+  newCode:{epi:'',referencia:'',ca:'',caracteristicas:'',fornecedor:'',foto:''},
   batch:[], genCode:null,
   newPortal:{empresa:''}, genPortalCode:null,
-  toast:null
+  toast:null,
+  ejsKey:'', ejsSvc:'', ejsTpl:'', ejsEmail:''
 };
 
 // ── FIREBASE REALTIME DATABASE (REST, sem SDK) ─────────
@@ -205,6 +207,8 @@ function hasFb(){return!!getFbUrl();}
 // ── INIT ───────────────────────────────────────────────
 async function initData(){
   S.adminPwd=ld('pwd','uniluvas');
+  S.ejsKey=ld('ejsKey','');S.ejsSvc=ld('ejsSvc','');S.ejsTpl=ld('ejsTpl','');S.ejsEmail=ld('ejsEmail','');
+  if(S.ejsKey)try{emailjs.init(S.ejsKey)}catch(e){}
   // URLs fixas — todos os dispositivos usam o mesmo banco automaticamente
   S.fbUrl=ld('fburl','https://uniluvas-teste-default-rtdb.firebaseio.com');
   S.baseUrl=ld('baseUrl','https://uniluvas-epi.netlify.app');
@@ -350,7 +354,7 @@ function setRating(k,v){S.form.d[k]=v;R();}
 function setDec(v){S.form.d.decisaoUsuario=v;R();}
 function saveFields(step){
   const d=S.form.d;
-  const m={1:['epi','referencia','ca','amostras','dataEntrega','caracteristicas','fornecedor','contatoFornecedor'],2:['empresa','contato','nomeUsuario','cargo','matricula','area','atividade','detalhamento','dataInicio','horaInicio','dataTermino','horaTermino'],4:['parecerUsuario']};
+  const m={1:['epi','referencia','ca','amostras','dataEntrega','caracteristicas','fornecedor','contatoFornecedor'],2:['empresa','contato','nomeUsuario','cargo','matricula','area','atividade','detalhamento','dataInicio','horaInicio','dataTermino','horaTermino'],4:['parecerUsuario','assinaturaNome','assinaturaCpf']};
   (m[step]||[]).forEach(id=>{const el=document.getElementById('f_'+id);if(el)d[id]=el.value;});
 }
 function fNext(){
@@ -374,8 +378,13 @@ function submitForm(){
     }
     persist();S.view='detail';window.scrollTo(0,0);R();
   }else{
-    const t={id:genId(),createdAt:new Date().toISOString().split('T')[0],epi:d.epi,amostras:d.amostras,dataEntrega:d.dataEntrega,referencia:d.referencia,ca:d.ca,caracteristicas:d.caracteristicas,fornecedor:d.fornecedor,contatoFornecedor:d.contatoFornecedor,empresa:d.empresa,contato:d.contato,nomeUsuario:d.nomeUsuario,cargo:d.cargo,matricula:d.matricula,area:d.area,atividade:d.atividade,detalhamento:d.detalhamento,dataInicio:d.dataInicio,dataTermino:d.dataTermino,avaliacao:av,parecerUsuario:d.parecerUsuario,decisaoUsuario:d.decisaoUsuario,parecerSESMT:null,decisaoSESMT:null,responsavelSESMT:null,dataSESMT:null,sesmtCode:null,editHistory:[]};
-    S.tests.unshift(t);persist();S.view='success';window.scrollTo(0,0);R();
+    const t={id:genId(),createdAt:new Date().toISOString().split('T')[0],codigoAcesso:S.form.codeLock?(S.formCode||''):'',epi:d.epi,amostras:d.amostras,dataEntrega:d.dataEntrega,referencia:d.referencia,ca:d.ca,caracteristicas:d.caracteristicas,fornecedor:d.fornecedor,contatoFornecedor:d.contatoFornecedor,empresa:d.empresa,contato:d.contato,nomeUsuario:d.nomeUsuario,cargo:d.cargo,matricula:d.matricula,area:d.area,atividade:d.atividade,detalhamento:d.detalhamento,dataInicio:d.dataInicio,dataTermino:d.dataTermino,avaliacao:av,parecerUsuario:d.parecerUsuario,decisaoUsuario:d.decisaoUsuario,assinaturaNome:d.assinaturaNome,assinaturaCpf:d.assinaturaCpf,parecerSESMT:null,decisaoSESMT:null,responsavelSESMT:null,dataSESMT:null,sesmtCode:null,editHistory:[]};
+    S.tests.unshift(t);persist();
+    // Notificação por e-mail
+    if(S.ejsKey&&S.ejsSvc&&S.ejsTpl&&S.ejsEmail){
+      try{emailjs.send(S.ejsSvc,S.ejsTpl,{to_email:S.ejsEmail,ficha_id:t.id,epi:t.epi,empresa:t.empresa,usuario:t.nomeUsuario,decisao:t.decisaoUsuario==='aprovado'?'Aprovado':'Rejeitado',data:t.createdAt,link:S.baseUrl+'?view=admin'});}catch(e){}
+    }
+    S.view='success';window.scrollTo(0,0);R();
   }
 }
 function saveSESMT(){
@@ -397,14 +406,33 @@ function saveSesmtRev(){
 function createCode(){
   const nc=S.newCode;if(!nc.epi.trim()){alert('Informe o nome do EPI.');return;}
   const code=mkCode();
-  S.codes.unshift({code,epi:nc.epi,referencia:nc.referencia,ca:nc.ca,caracteristicas:nc.caracteristicas||'',fornecedor:nc.fornecedor||'',createdAt:new Date().toISOString().split('T')[0]});
+  S.codes.unshift({code,epi:nc.epi,referencia:nc.referencia,ca:nc.ca,caracteristicas:nc.caracteristicas||'',fornecedor:nc.fornecedor||'',foto:nc.foto||'',createdAt:new Date().toISOString().split('T')[0]});
   persistC();S.genCode=code;
-  // Add to current batch
   S.batch.push({code,epi:nc.epi});
-  S.newCode={epi:'',referencia:'',ca:'',caracteristicas:'',fornecedor:''};
+  S.newCode={epi:'',referencia:'',ca:'',caracteristicas:'',fornecedor:'',foto:''};
   R();
 }
 function clearBatch(){S.batch=[];S.genCode=null;R();}
+function handleFotoUpload(input){
+  const file=input.files[0];if(!file)return;
+  if(file.size>900000){alert('Imagem muito grande. Use uma foto menor que 900KB.');input.value='';return;}
+  const img=new Image();
+  const reader=new FileReader();
+  reader.onload=e=>{
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      const max=600;let w=img.width,h=img.height;
+      if(w>max){h=Math.round(h*max/w);w=max;}
+      if(h>max){w=Math.round(w*max/h);h=max;}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      S.newCode.foto=canvas.toDataURL('image/jpeg',0.75);
+      R();
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
 function createPortal(){
   const emp=S.newPortal.empresa.trim();if(!emp){alert('Informe o nome da empresa.');return;}
   const code=mkCode();
@@ -448,15 +476,19 @@ async function saveSettings(){
   const url=document.getElementById('su')?.value||'';
   const fb=document.getElementById('sfb')?.value||'';
   const pwd=document.getElementById('spwd')?.value||'';
+  const ek=document.getElementById('sEjsKey')?.value||'';
+  const es=document.getElementById('sEjsSvc')?.value||'';
+  const et=document.getElementById('sEjsTpl')?.value||'';
+  const ee=document.getElementById('sEjsEmail')?.value||'';
   S.baseUrl=url.trim().replace(/\/$/,'');sv('baseUrl',S.baseUrl);
   const newFb=fb.trim().replace(/\/$/,'');
   if(newFb!==S.fbUrl){S.fbUrl=newFb;sv('fburl',S.fbUrl);}
   if(pwd&&pwd.length>=4){S.adminPwd=pwd;sv('pwd',pwd);}
-  // Se configurou Firebase, faz upload dos dados locais
-  if(S.fbUrl&&newFb){
-    showToast('Sincronizando com Firebase...');
-    await Promise.all([fbSet('tests',S.tests),fbSet('codes',S.codes),fbSet('portals',S.portals)]);
-  }
+  if(ek){S.ejsKey=ek;sv('ejsKey',ek);try{emailjs.init(ek);}catch(e){}}
+  if(es){S.ejsSvc=es;sv('ejsSvc',es);}
+  if(et){S.ejsTpl=et;sv('ejsTpl',et);}
+  if(ee){S.ejsEmail=ee;sv('ejsEmail',ee);}
+  if(S.fbUrl&&newFb){showToast('Sincronizando...');await Promise.all([fbSet('tests',S.tests),fbSet('codes',S.codes),fbSet('portals',S.portals)]);}
   showToast('Configurações salvas!');
 }
 
@@ -477,7 +509,7 @@ function exportPDF(t){
 ${t.caracteristicas?`<div style="margin-bottom:11px"><div class="fl">Características</div><div class="fv">${t.caracteristicas}</div></div>`:''}
 <h2>Cliente e Teste</h2><div class="g3"><div><div class="fl">Empresa</div><div class="fv">${t.empresa||'—'}</div></div><div><div class="fl">Contato</div><div class="fv">${t.contato||'—'}</div></div><div><div class="fl">Usuário</div><div class="fv">${t.nomeUsuario||'—'}</div></div><div><div class="fl">Cargo</div><div class="fv">${t.cargo||'—'}</div></div><div><div class="fl">Área</div><div class="fv">${t.area||'—'}</div></div><div><div class="fl">Período</div><div class="fv">${fmtD(t.dataInicio)} → ${fmtD(t.dataTermino)}</div></div></div>
 <h2>Avaliação por critério</h2><div class="g4">${CRIT.map(c=>`<div class="ci"><div class="cl">${c.label}</div><div class="cv">${rs(t.avaliacao?.[c.key])}</div></div>`).join('')}</div>
-<h2>Parecer do Usuário</h2><div class="pb">${t.parecerUsuario||'—'}</div><div style="margin-bottom:13px">Decisão: <span class="dc" style="${dc(t.decisaoUsuario)}">${t.decisaoUsuario==='aprovado'?'Aprovado':t.decisaoUsuario==='rejeitado'?'Rejeitado':'—'}</span></div>
+<h2>Parecer do Usuário</h2><div class="pb">${t.parecerUsuario||'—'}</div><div style="margin-bottom:8px">Decisão: <span class="dc" style="${dc(t.decisaoUsuario)}">${t.decisaoUsuario==='aprovado'?'Aprovado':t.decisaoUsuario==='rejeitado'?'Rejeitado':'—'}</span></div>${t.assinaturaNome?`<div style="background:#E8F2FC;border-radius:4px;padding:7px 10px;font-size:10px;color:#0C447C;margin-bottom:12px">✍ Assinatura digital: <strong>${t.assinaturaNome}</strong> — CPF ${t.assinaturaCpf||'não informado'}</div>`:''}
 ${t.parecerSESMT?`<h2>Parecer SESMT</h2><div class="pb">${t.parecerSESMT}</div><div style="display:flex;justify-content:space-between">Decisão: <span class="dc" style="${dc(t.decisaoSESMT)}">${t.decisaoSESMT==='aprovado'?'Aprovado':'Rejeitado'}</span><span>${t.responsavelSESMT||''} · ${fmtD(t.dataSESMT)}</span></div>`:''}
 ${t.editHistory?.length?`<h2>Histórico</h2>${t.editHistory.map(h=>`<div style="font-size:10px;color:#888;padding:2px 0;border-bottom:1px solid #f0f0f0">Editado por ${h.by} em ${h.ts}</div>`).join('')}`:''}
 <div class="ft"><span>Gerado ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span><span>Uniluvas Proteção — Gestão de EPIs</span></div></body></html>`;
@@ -706,6 +738,19 @@ function vACodigos(){
         <div class="fg" style="margin:0"><label class="lbl">Fornecedor</label><input placeholder="Nome do fabricante" oninput="S.newCode.fornecedor=this.value" value="${nc.fornecedor}"></div>
       </div>
       <div class="fg"><label class="lbl">Características / Descrição</label><input placeholder="Material, tamanho, especificações..." oninput="S.newCode.caracteristicas=this.value" value="${nc.caracteristicas}"></div>
+      <div class="fg"><label class="lbl">Foto do EPI <span class="tx tm">(opcional)</span></label>
+        <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          ${nc.foto?('<img src="'+nc.foto+'" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1.5px solid var(--g200);flex-shrink:0">'):''}
+          <div>
+            <label style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;background:var(--g100);border:1.5px solid var(--g200);border-radius:8px;font-size:12px;color:var(--g700)">
+              📷 ${nc.foto?'Trocar foto':'Escolher foto'}
+              <input type="file" id="fotoInput" accept="image/*" onchange="handleFotoUpload(this)" style="display:none">
+            </label>
+            <div class="tx tm mt4">JPG ou PNG, máx. 900KB — comprimida automaticamente</div>
+            ${nc.foto?'<button class="btn btn-ghost btn-sm mt4" style="font-size:11px;color:var(--red)" onclick="S.newCode.foto=\\'\\';R()">✕ Remover</button>':''}
+          </div>
+        </div>
+      </div>
       <div class="fc g8 mt4">
         <button class="btn btn-primary" onclick="createCode()">+ Gerar código</button>
         ${S.batch.length>0?`<span class="tx tm">${S.batch.length} código${S.batch.length>1?'s':''} no lote</span><button class="btn btn-ghost ts" onclick="clearBatch()">Limpar lote</button>`:''}
@@ -777,8 +822,46 @@ function vAPortais(){
 function vAConfig(){
   const base=getBase();
   const fbConfigured=!!S.fbUrl;
+  const ejsConfigured=!!(S.ejsKey&&S.ejsSvc&&S.ejsTpl&&S.ejsEmail);
   return`
   <div style="padding:20px;max-width:620px">
+    <!-- EMAILJS — notificações por e-mail -->
+    <div class="card mb-20" style="border-color:${ejsConfigured?'#A7E5CB':'var(--g200)'}">
+      <div class="fb mb4">
+        <div style="font-size:14px;font-weight:600">✉ Notificações por e-mail</div>
+        ${ejsConfigured?'<span class="badge bg">✓ Ativo</span>':'<span class="badge bk">Não configurado</span>'}
+      </div>
+      <div style="font-size:12px;color:var(--g400);margin-bottom:14px;line-height:1.6">
+        Receba um e-mail automático sempre que uma nova ficha for enviada. Usa o serviço gratuito <strong style="color:var(--g700)">EmailJS</strong> (200 e-mails/mês grátis).
+      </div>
+      ${!ejsConfigured?`<div style="background:var(--blue-l);border:1px solid #BDD9F5;border-radius:8px;padding:12px 14px;font-size:12px;color:#1E4A7A;margin-bottom:14px;line-height:1.9">
+        <strong>Como configurar (grátis, ~8 min):</strong><br>
+        1. Acesse <a href="https://www.emailjs.com" target="_blank" style="color:var(--blue)">emailjs.com</a> → Sign Up (grátis)<br>
+        2. <strong>Email Services</strong> → Add New Service → escolha Gmail → conecte sua conta → copie o <strong>Service ID</strong><br>
+        3. <strong>Email Templates</strong> → Create New Template → cole o modelo abaixo → salve → copie o <strong>Template ID</strong><br>
+        4. <strong>Account</strong> → copie a <strong>Public Key</strong><br>
+        5. Preencha os campos abaixo e salve
+      </div>
+      <div style="background:var(--g50);border:1px solid var(--g200);border-radius:8px;padding:10px 12px;font-size:11px;font-family:var(--m);margin-bottom:14px;line-height:1.8;color:var(--g700)">
+        <div style="font-size:11px;font-weight:500;margin-bottom:6px;color:var(--g500)">MODELO DO E-MAIL (cole no EmailJS Template):</div>
+        Nova ficha recebida!<br>
+        ID: {{ficha_id}}<br>
+        EPI: {{epi}}<br>
+        Empresa: {{empresa}}<br>
+        Usuário: {{usuario}}<br>
+        Decisão: {{decisao}}<br>
+        Data: {{data}}<br>
+        Ver no painel: {{link}}
+      </div>`:''}
+      <div class="g2 mb12">
+        <div class="fg" style="margin:0"><label class="lbl req">Public Key</label><input id="sEjsKey" placeholder="Sua Public Key do EmailJS" value="${S.ejsKey}"></div>
+        <div class="fg" style="margin:0"><label class="lbl req">Service ID</label><input id="sEjsSvc" placeholder="Ex: service_abc123" value="${S.ejsSvc}"></div>
+      </div>
+      <div class="g2 mb12">
+        <div class="fg" style="margin:0"><label class="lbl req">Template ID</label><input id="sEjsTpl" placeholder="Ex: template_xyz456" value="${S.ejsTpl}"></div>
+        <div class="fg" style="margin:0"><label class="lbl req">E-mail destino</label><input id="sEjsEmail" type="email" placeholder="seu@email.com" value="${S.ejsEmail}"></div>
+      </div>
+    </div>
     <!-- FIREBASE — banco de dados compartilhado -->
     <div class="card mb-20" style="border-color:${fbConfigured?'#A7E5CB':'#F0D080'}">
       <div class="fb mb4">
@@ -834,10 +917,10 @@ function vDetail(){
     <div class="fc g8"><button class="btn btn-sm" onclick="exportPDF(S.sel)">↓ PDF</button><button class="btn btn-sm" onclick="nav('editForm')">✎ Editar</button></div>
   </div>
   <div style="padding:20px;max-width:860px">
-    <div class="card mb-16"><div class="sectitle">Equipamento</div><div class="g3 mb12">${fld('EPI',t.epi)}${fld('Referência',t.referencia)}${fld('CA',t.ca)}${fld('Amostras',t.amostras)}${fld('Fornecedor',t.fornecedor)}${fld('Entrega',fmtD(t.dataEntrega))}</div>${t.caracteristicas?`<div class="mt8">${fld('Características',t.caracteristicas)}</div>`:''}</div>
+    <div class="card mb-16"><div class="sectitle">Equipamento</div><div style="display:flex;gap:16px;align-items:flex-start">${(()=>{const codeEntry=S.codes.find(c=>c.code===t.codigoAcesso);return codeEntry&&codeEntry.foto?'<img src="'+codeEntry.foto+'" style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1.5px solid var(--g200);flex-shrink:0">':''})()}<div style="flex:1"><div class="g3 mb12">${fld('EPI',t.epi)}${fld('Referência',t.referencia)}${fld('CA',t.ca)}${fld('Amostras',t.amostras)}${fld('Fornecedor',t.fornecedor)}${fld('Entrega',fmtD(t.dataEntrega))}</div>${t.caracteristicas?'<div class="mt8">'+fld('Características',t.caracteristicas)+'</div>':''}</div></div></div>
     <div class="card mb-16"><div class="sectitle">Cliente e Teste</div><div class="g3 mb12">${fld('Empresa',t.empresa)}${fld('Contato',t.contato)}${fld('Usuário',t.nomeUsuario)}${fld('Cargo',t.cargo)}${fld('Área',t.area)}${fld('Período',t.dataInicio?fmtD(t.dataInicio)+' → '+fmtD(t.dataTermino):'—')}</div>${t.detalhamento?`<div class="mt8">${fld('Detalhamento',t.detalhamento)}</div>`:''}</div>
     <div class="card mb-16"><div class="sectitle">Avaliação por critério</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${CRIT.map(c=>`<div style="background:var(--g50);border:1.5px solid var(--g200);border-radius:8px;padding:10px"><div style="font-size:11px;color:var(--g400);margin-bottom:7px">${c.label}</div>${rbadge(t.avaliacao?.[c.key])}</div>`).join('')}</div></div>
-    <div class="card mb-16"><div class="sectitle">Parecer do Usuário</div><div style="background:var(--g50);border-radius:8px;padding:12px;font-size:13px;line-height:1.6;margin-bottom:10px">${t.parecerUsuario||'—'}</div><div class="fc g8 ts"><span class="tm">Decisão:</span>${t.decisaoUsuario==='aprovado'?'<span class="badge bg">✓ Aprovado</span>':t.decisaoUsuario==='rejeitado'?'<span class="badge br">✗ Rejeitado</span>':'<span class="badge bk">Não informado</span>'}</div></div>
+    <div class="card mb-16"><div class="sectitle">Parecer do Usuário</div><div style="background:var(--g50);border-radius:8px;padding:12px;font-size:13px;line-height:1.6;margin-bottom:10px">${t.parecerUsuario||'—'}</div><div class="fc g8 ts mb12"><span class="tm">Decisão:</span>${t.decisaoUsuario==='aprovado'?'<span class="badge bg">✓ Aprovado</span>':t.decisaoUsuario==='rejeitado'?'<span class="badge br">✗ Rejeitado</span>':'<span class="badge bk">Não informado</span>'}</div>${t.assinaturaNome?`<div style="background:var(--blue-l);border:1px solid #BDD9F5;border-radius:8px;padding:10px 12px;font-size:12px;color:#1E4A7A"><span style="font-weight:500">✍ Assinatura digital:</span> ${t.assinaturaNome} — CPF ${t.assinaturaCpf||'não informado'}</div>`:''}</div>
     <div class="card mb-16" style="border-color:${t.decisaoSESMT?'var(--g200)':'#F0C060'}">
       <div class="sectitle" style="border-color:${t.decisaoSESMT?'var(--g100)':'#F0D090'}">${t.decisaoSESMT?'Parecer do SESMT':'⚠ Aguardando Parecer SESMT'}</div>
       ${t.decisaoSESMT?`<div style="font-size:13px;line-height:1.6;margin-bottom:12px">${t.parecerSESMT}</div><div class="fb ts"><div class="fc g8"><span class="tm">Decisão:</span>${t.decisaoSESMT==='aprovado'?'<span class="badge bg">✓ Aprovado</span>':'<span class="badge br">✗ Rejeitado</span>'}</div><div class="tm">${t.responsavelSESMT} · ${fmtD(t.dataSESMT)}</div></div>
@@ -950,8 +1033,9 @@ function vForm(){
   </div>
   ${vFooter()}`;
 }
-function vS1(d,lock){const a=lock?'readonly':'';return`
+function vS1(d,lock){const a=lock?'readonly':'';const codeEntry=lock?S.codes.find(c=>c.code===(S.formCode||'')):null;return`
   <div style="font-size:20px;font-weight:600;margin-bottom:4px">Dados do Equipamento</div>
+  ${codeEntry&&codeEntry.foto?'<img src="'+codeEntry.foto+'" style="width:100%;max-height:180px;object-fit:contain;border-radius:10px;border:1.5px solid var(--g200);margin-bottom:14px">':''}
   <div class="ts tm mb20">${lock?'EPI configurado pela Uniluvas — campos somente leitura.':'Informe os dados do EPI enviado para avaliação.'}</div>
   <div class="fg"><label class="lbl req">Nome do EPI</label><input id="f_epi" value="${d.epi}" ${a} placeholder="Ex: Luva de proteção mecânica"></div>
   <div class="g2 mb12"><div class="fg" style="margin:0"><label class="lbl">Referência</label><input id="f_referencia" value="${d.referencia}" ${a} placeholder="Código"></div><div class="fg" style="margin:0"><label class="lbl">CA</label><input id="f_ca" value="${d.ca}" ${a} placeholder="Ex: 12345"></div></div>
@@ -980,15 +1064,24 @@ function vS3(d){
     <span style="background:var(--red);color:#fff;padding:4px 11px;border-radius:99px;font-size:11px;font-weight:600">✗ R — Rejeitado</span>
   </div>
   <div class="g2" style="gap:10px">${CRIT.map(c=>`<div class="ritem"><div class="rlbl">${c.label}</div><div class="rbtns">${ri(c.key,'A','A — Aprovado')}${ri(c.key,'AR','AR')}${ri(c.key,'R','R')}</div></div>`).join('')}</div>`;}
+function cpfMask(v){return v.replace(/\D/g,'').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2').substr(0,14);}
 function vS4(d){return`
-  <div style="font-size:20px;font-weight:600;margin-bottom:4px">Parecer do Usuário</div>
-  <div class="ts tm mb20">Registre sua experiência e dê o veredicto final</div>
-  <div class="fg"><label class="lbl">Comentários e observações</label><textarea id="f_parecerUsuario" placeholder="Pontos positivos, negativos, situações de falha e sugestões..." style="min-height:120px">${d.parecerUsuario}</textarea></div>
+  <div style="font-size:20px;font-weight:600;margin-bottom:4px">Parecer e Assinatura</div>
+  <div class="ts tm mb20">Registre sua experiência, dê o veredicto e assine digitalmente</div>
+  <div class="fg"><label class="lbl">Comentários e observações</label><textarea id="f_parecerUsuario" placeholder="Pontos positivos, negativos, situações de falha e sugestões..." style="min-height:110px">${d.parecerUsuario}</textarea></div>
   <div class="fg"><label class="lbl fw5" style="font-size:13px;margin-bottom:12px">Decisão final</label><div class="fl g8">
     <button class="dbtn ap ${d.decisaoUsuario==='aprovado'?'on':''}" onclick="setDec('aprovado')"><div style="font-size:26px;margin-bottom:7px">✓</div>Aprovado<div class="tx mt4" style="opacity:.7">EPI atende</div></button>
     <button class="dbtn rj ${d.decisaoUsuario==='rejeitado'?'on':''}" onclick="setDec('rejeitado')"><div style="font-size:26px;margin-bottom:7px">✗</div>Rejeitado<div class="tx mt4" style="opacity:.7">Não atende</div></button>
   </div></div>
-  <div class="card" style="background:var(--g50);margin-top:18px;border-color:var(--g200)"><div class="ts fw5 mb8">Resumo</div><div class="ts tm" style="line-height:2"><strong style="color:var(--g700)">EPI:</strong> ${d.epi||'—'} &nbsp;·&nbsp; <strong style="color:var(--g700)">Empresa:</strong> ${d.empresa||'—'} &nbsp;·&nbsp; <strong style="color:var(--g700)">Critérios:</strong> ${CRIT.filter(c=>d[c.key]).length}/${CRIT.length}</div></div>`;}
+  <div style="background:var(--blue-l);border:1.5px solid #BDD9F5;border-radius:var(--r12);padding:16px;margin-top:4px">
+    <div style="font-size:13px;font-weight:600;color:#1E4A7A;margin-bottom:12px">✍ Assinatura digital</div>
+    <div class="g2">
+      <div class="fg" style="margin:0"><label class="lbl req">Nome completo</label><input id="f_assinaturaNome" placeholder="Seu nome completo" value="${d.assinaturaNome}" oninput="S.form.d.assinaturaNome=this.value"></div>
+      <div class="fg" style="margin:0"><label class="lbl req">CPF</label><input id="f_assinaturaCpf" placeholder="000.000.000-00" maxlength="14" value="${d.assinaturaCpf}" oninput="this.value=cpfMask(this.value);S.form.d.assinaturaCpf=this.value"></div>
+    </div>
+    <div class="ts tm mt8">Ao enviar, você confirma que as informações são verdadeiras e que esta é sua assinatura eletrônica.</div>
+  </div>
+  <div class="card" style="background:var(--g50);margin-top:14px;border-color:var(--g200)"><div class="ts fw5 mb8">Resumo</div><div class="ts tm" style="line-height:2"><strong style="color:var(--g700)">EPI:</strong> ${d.epi||'—'} &nbsp;·&nbsp; <strong style="color:var(--g700)">Empresa:</strong> ${d.empresa||'—'} &nbsp;·&nbsp; <strong style="color:var(--g700)">Critérios:</strong> ${CRIT.filter(c=>d[c.key]).length}/${CRIT.length}</div></div>`;}
 
 // ── SUCCESS ────────────────────────────────────────────
 function vSuccess(){return vHeader()+`
