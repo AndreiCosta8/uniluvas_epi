@@ -208,8 +208,17 @@ function hasFb(){return!!getFbUrl();}
 // ── INIT ───────────────────────────────────────────────
 async function initData(){
   S.adminPwd=ld('pwd','uniluvas');
-  S.ejsKey=ld('ejsKey','');S.ejsSvc=ld('ejsSvc','');S.ejsTpl=ld('ejsTpl','');S.ejsEmails=ld('ejsEmails','');
-  if(S.ejsKey)try{emailjs.init({publicKey:S.ejsKey});}catch(e){}
+  // EmailJS — credenciais fixas (funcionam em qualquer dispositivo)
+  const DEFAULT_EJS_KEY='VlfCd389hV00z53lU';
+  const DEFAULT_EJS_SVC='service_9l9iupd';
+  const DEFAULT_EJS_TPL='template_lkotw6h';
+  const DEFAULT_EJS_EMAILS='andrei.costa@uniluvas.com.br';
+  S.ejsKey=ld('ejsKey',DEFAULT_EJS_KEY);
+  S.ejsSvc=ld('ejsSvc',DEFAULT_EJS_SVC);
+  S.ejsTpl=ld('ejsTpl',DEFAULT_EJS_TPL);
+  S.ejsEmails=ld('ejsEmails',DEFAULT_EJS_EMAILS);
+
+  try{emailjs.init({publicKey:S.ejsKey});}catch(e){}
   // URLs fixas — todos os dispositivos usam o mesmo banco automaticamente
   S.fbUrl=ld('fburl','https://uniluvas-teste-default-rtdb.firebaseio.com');
   S.baseUrl=ld('baseUrl','https://uniluvas-epi.netlify.app');
