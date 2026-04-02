@@ -447,6 +447,12 @@ function deleteAllTests(){
   if(!confirm('Confirma a exclusão de '+S.tests.length+' ficha(s)?'))return;
   S.tests=[];persist();showToast('Todas as fichas foram excluídas.');R();
 }
+function loadExamples(){
+  if(S.tests.length>0&&!confirm('Já existem '+S.tests.length+' ficha(s). Adicionar os exemplos mesmo assim?'))return;
+  const ex=DTESTS.map(t=>({...t,id:genId()+'E',createdAt:new Date().toISOString().split('T')[0]}));
+  S.tests=[...ex,...S.tests];
+  persist();showToast('Fichas de exemplo adicionadas!');R();
+}
 function editCode(idx){
   S.editCodeIdx=idx;
   const c=S.codes[idx];
@@ -872,7 +878,8 @@ function vARel(){
         <div style="height:1px;background:var(--g100)"></div>
         <div>
           <div class="ts tm mb8">Zona de perigo</div>
-          <button class="btn" style="color:var(--red);border-color:var(--red-l);justify-content:flex-start;text-align:left" onclick="deleteAllTests()">🗑 Excluir todas as fichas</button>
+          <button class="btn" style="color:var(--blue);border-color:var(--blue-l);justify-content:flex-start;text-align:left;margin-bottom:8px" onclick="loadExamples()">📋 Carregar fichas de exemplo</button>
+        <button class="btn" style="color:var(--red);border-color:var(--red-l);justify-content:flex-start;text-align:left" onclick="deleteAllTests()">🗑 Excluir todas as fichas</button>
           <div class="tx tm mt6">Use apenas para limpar dados de teste antes de entrar em produção.</div>
         </div>
       </div>
