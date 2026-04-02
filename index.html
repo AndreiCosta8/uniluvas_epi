@@ -67,7 +67,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .thdr{display:grid;padding:8px 16px;font-size:11px;font-weight:600;color:var(--g400);letter-spacing:.05em;text-transform:uppercase;border-bottom:1.5px solid var(--g100)}
 .trow{display:grid;padding:12px 16px;border-bottom:1px solid var(--g100);font-size:13px;cursor:pointer;transition:background .1s}
 .trow:hover{background:var(--g50)}
-.tcols{grid-template-columns:2.2fr 1.8fr 1fr 1fr 1fr;gap:12px}
+.tcols{grid-template-columns:2.2fr 1.8fr 1fr 1fr 1fr;gap:12px}.tcols7{display:grid;grid-template-columns:2fr 1.5fr .8fr 1fr 1fr 80px;gap:0}
 /* Tabs */
 .tabs{display:flex;border-bottom:1.5px solid var(--g200);overflow-x:auto;padding:0 20px;background:var(--w)}
 .tab{padding:11px 14px;font-size:13px;font-weight:500;cursor:pointer;color:var(--g400);border-bottom:2px solid transparent;margin-bottom:-1.5px;white-space:nowrap;transition:color .12s}
@@ -157,9 +157,8 @@ function mkCode(){
 
 // ── DEFAULT DATA ───────────────────────────────────────
 const DTESTS=[
-  {id:'TEST-2024-001',createdAt:'2024-11-10',epi:'Luva de Proteção Mecânica',amostras:'5',dataEntrega:'2024-10-28',referencia:'LPM-450',ca:'12345',caracteristicas:'Couro bovino grão, forro algodão, punho longo 30cm',fornecedor:'Safety Pro',contatoFornecedor:'(11) 9999-8888',empresa:'Mineração Vale Norte',contato:'João Silva',nomeUsuario:'Carlos Mendes',cargo:'Operador',matricula:'12347',area:'Mineração',atividade:'Operação de Equipamentos Pesados',detalhamento:'Turno 8h com manuseio de peças metálicas.',dataInicio:'2024-11-01',horaInicio:'07:00',dataTermino:'2024-11-08',horaTermino:'16:00',avaliacao:{resistencia:'A',durabilidade:'A',desempenho:'AR',higienizacao:'A',adequacao:'A',conforto:'AR',aderencia:'A',isolacaoTermica:'A'},parecerUsuario:'Boa resistência. Desempenho em alta demanda pode melhorar.',decisaoUsuario:'aprovado',parecerSESMT:'EPI aprovado para uso contínuo.',decisaoSESMT:'aprovado',responsavelSESMT:'Dr. Paulo Ribeiro',dataSESMT:'2024-11-12',sesmtCode:null,editHistory:[]},
-  {id:'TEST-2024-002',createdAt:'2024-11-20',epi:'Capacete de Segurança Classe B',amostras:'10',dataEntrega:'2024-11-10',referencia:'CS-300',ca:'67890',caracteristicas:'Classe B, aba frontal, carneira 6 pontos',fornecedor:'EquipMax',contatoFornecedor:'(21) 3322-1100',empresa:'Construção BRX',contato:'Ana Costa',nomeUsuario:'Fernando Lima',cargo:'Engenheiro',matricula:'55021',area:'Construção Civil',atividade:'Supervisão em altura',detalhamento:'Uso diário em andaimes.',dataInicio:'2024-11-15',horaInicio:'08:00',dataTermino:'2024-11-19',horaTermino:'17:30',avaliacao:{resistencia:'A',durabilidade:'A',desempenho:'A',higienizacao:'AR',adequacao:'A',conforto:'A',aderencia:'A',isolacaoTermica:'AR'},parecerUsuario:'Excelente produto!',decisaoUsuario:'aprovado',parecerSESMT:null,decisaoSESMT:null,responsavelSESMT:null,dataSESMT:null,sesmtCode:null,editHistory:[]},
-  {id:'TEST-2024-003',createdAt:'2024-12-05',epi:'Bota de Segurança PVC',amostras:'8',dataEntrega:'2024-11-20',referencia:'BSP-200',ca:'11223',caracteristicas:'PVC injetado, biqueira PVC, solado antiderrapante',fornecedor:'BoteriaGeral',contatoFornecedor:'(51) 4412-9090',empresa:'Agropecuária Santos',contato:'Maria Ferreira',nomeUsuario:'Roberto Alves',cargo:'Trabalhador Rural',matricula:'00891',area:'Agropecuária',atividade:'Lavoura irrigada',detalhamento:'Campo úmido, 10h/dia.',dataInicio:'2024-11-25',horaInicio:'06:00',dataTermino:'2024-12-04',horaTermino:'16:00',avaliacao:{resistencia:'R',durabilidade:'AR',desempenho:'R',higienizacao:'A',adequacao:'R',conforto:'R',aderencia:'AR',isolacaoTermica:'A'},parecerUsuario:'Produto não atende. Desconfortável após 2h.',decisaoUsuario:'rejeitado',parecerSESMT:'Reprovado. Não indicado para campo úmido.',decisaoSESMT:'rejeitado',responsavelSESMT:'Dr. Paulo Ribeiro',dataSESMT:'2024-12-06',sesmtCode:null,editHistory:[]}
+  {id:'TEST-2025-001',createdAt:'2025-03-10',codigoAcesso:'LUVA01',epi:'Luva de Proteção Mecânica',amostras:'6',dataEntrega:'2025-03-05',referencia:'LPM-450',ca:'12345',caracteristicas:'Couro bovino grão, forro algodão, punho longo 30cm',fornecedor:'Safety Pro',contatoFornecedor:'(11) 99999-8888',empresa:'Mineração Vale Norte',contato:'João Silva',nomeUsuario:'Carlos Mendes',cargo:'Operador de Máquinas',matricula:'12347',area:'Mineração',atividade:'Operação de Equipamentos Pesados',detalhamento:'Turno de 8h com manuseio de peças metálicas. Exposição a abrasivos e calor moderado.',dataInicio:'2025-03-06',horaInicio:'07:00',dataTermino:'2025-03-09',horaTermino:'16:00',avaliacao:{resistencia:'A',durabilidade:'A',desempenho:'AR',higienizacao:'A',adequacao:'A',conforto:'AR',aderencia:'A',isolacaoTermica:'A'},parecerUsuario:'Luva apresentou boa resistência ao longo do período de teste. O desempenho em situações de alta demanda pode ser melhorado. Conforto razoável após uso prolongado.',decisaoUsuario:'aprovado',assinaturaNome:'Carlos Mendes',assinaturaCpf:'123.456.789-00',parecerSESMT:'EPI aprovado para uso contínuo nas atividades de operação. Recomenda-se troca a cada 60 dias ou quando houver desgaste visível.',decisaoSESMT:'aprovado',responsavelSESMT:'Dr. Paulo Ribeiro',dataSESMT:'2025-03-12',sesmtCode:null,editHistory:[]},
+  {id:'TEST-2025-002',createdAt:'2025-03-18',codigoAcesso:'BOTA01',epi:'Bota de Segurança PVC Cano Longo',amostras:'4',dataEntrega:'2025-03-14',referencia:'BSP-300',ca:'67890',caracteristicas:'PVC injetado, cano longo 40cm, biqueira de aço, solado antiderrapante',fornecedor:'BoteriaGeral',contatoFornecedor:'(51) 4412-9090',empresa:'Agropecuária Santos',contato:'Maria Ferreira',nomeUsuario:'Roberto Alves',cargo:'Trabalhador Rural',matricula:'00891',area:'Agropecuária',atividade:'Lavoura irrigada e manejo de animais',detalhamento:'Uso em campo úmido por até 10h/dia. Exposição constante a água, lama e dejetos animais.',dataInicio:'2025-03-15',horaInicio:'06:00',dataTermino:'2025-03-17',horaTermino:'16:00',avaliacao:{resistencia:'A',durabilidade:'AR',desempenho:'A',higienizacao:'A',adequacao:'A',conforto:'AR',aderencia:'A',isolacaoTermica:'AR'},parecerUsuario:'Bota com boa resistência e fácil higienização. O conforto diminui após 6 horas de uso contínuo. Isolação térmica insuficiente em dias frios.',decisaoUsuario:'aprovado',assinaturaNome:'Roberto Alves',assinaturaCpf:'987.654.321-00',parecerSESMT:null,decisaoSESMT:null,responsavelSESMT:null,dataSESMT:null,sesmtCode:null,editHistory:[]}
 ];
 const DCODES=[
   {code:'CAMPO1',epi:'Luva de Proteção Mecânica',referencia:'LPM-450',ca:'12345',caracteristicas:'Couro bovino grão, punho longo',fornecedor:'Safety Pro',createdAt:'2024-12-01'},
@@ -427,6 +426,15 @@ function createCode(){
   R();
 }
 function clearBatch(){S.batch=[];S.genCode=null;R();}
+function quickEditEmpresa(id){
+  const t=S.tests.find(x=>x.id===id);if(!t)return;
+  const novo=prompt('Nome da empresa:',t.empresa);
+  if(novo===null)return;
+  const nome=novo.trim();if(!nome){alert('Nome não pode ser vazio.');return;}
+  t.empresa=nome;
+  const i=S.tests.findIndex(x=>x.id===id);if(i>=0)S.tests[i]=t;
+  persist();showToast('Empresa atualizada!');R();
+}
 function deleteTest(id){
   if(!confirm('Excluir esta ficha permanentemente? Esta ação não pode ser desfeita.'))return;
   S.tests=S.tests.filter(t=>t.id!==id);
@@ -752,9 +760,9 @@ function vAFichas(){
     <div class="ts tm" style="margin-left:auto">${fl.length} ficha${fl.length!==1?'s':''}</div>
   </div>
   <div style="background:var(--w)">
-    <div class="thdr tcols"><div>EPI / Referência</div><div>Empresa</div><div class="hm">Data</div><div>Avaliação</div><div>Status</div></div>
+    <div class="thdr tcols7"><div>EPI / Referência</div><div>Empresa</div><div class="hm">Data</div><div>Avaliação</div><div>Status</div><div class="hm">Ações</div></div>
     ${fl.length===0?`<div class="empty">📋 Nenhuma ficha encontrada</div>`:''}
-    ${fl.map(t=>`<div class="trow tcols" onclick="viewTest('${t.id}')"><div><div class="fw5">${t.epi}</div><div class="tx tm mt4">${t.referencia||'—'} · CA ${t.ca||'—'}</div></div><div><div>${t.empresa}</div><div class="tx tm">${t.contato||''}</div></div><div class="ts tm hm">${fmtD(t.createdAt)}</div><div>${abadge(t.avaliacao)}</div><div>${sbadge(t)}</div></div>`).join('')}
+    ${fl.map(t=>`<div class="trow tcols7"><div style="cursor:pointer" onclick="viewTest('${t.id}')"><div class="fw5">${t.epi}</div><div class="tx tm mt4">${t.referencia||'—'} · CA ${t.ca||'—'}</div></div><div style="cursor:pointer" onclick="viewTest('${t.id}')"><div>${t.empresa}</div><div class="tx tm">${t.contato||''}</div></div><div class="ts tm hm" style="cursor:pointer" onclick="viewTest('${t.id}')">${fmtD(t.createdAt)}</div><div style="cursor:pointer" onclick="viewTest('${t.id}')">${abadge(t.avaliacao)}</div><div style="cursor:pointer" onclick="viewTest('${t.id}')">${sbadge(t)}</div><div class="hm fc g6" style="gap:6px"><button class="btn btn-sm" style="padding:3px 8px;font-size:11px" onclick="event.stopPropagation();S.sel=S.tests.find(x=>x.id==='${t.id}');nav('editForm')">✎</button><button class="btn btn-sm" style="padding:3px 8px;font-size:11px;color:var(--red)" onclick="event.stopPropagation();deleteTest('${t.id}')">🗑</button></div></div>`).join('')}
   </div>`;
 }
 
