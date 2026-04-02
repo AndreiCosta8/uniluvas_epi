@@ -740,15 +740,14 @@ function vACodigos(){
       <div class="fg"><label class="lbl">Características / Descrição</label><input placeholder="Material, tamanho, especificações..." oninput="S.newCode.caracteristicas=this.value" value="${nc.caracteristicas}"></div>
       <div class="fg"><label class="lbl">Foto do EPI <span class="tx tm">(opcional)</span></label>
         <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
-          ${nc.foto?('<img src="'+nc.foto+'" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1.5px solid var(--g200);flex-shrink:0">'):''}
+          ${nc.foto?`<img src="${nc.foto}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1.5px solid var(--g200);flex-shrink:0">`:''}
           <div>
             <label style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;background:var(--g100);border:1.5px solid var(--g200);border-radius:8px;font-size:12px;color:var(--g700)">
               📷 ${nc.foto?'Trocar foto':'Escolher foto'}
               <input type="file" id="fotoInput" accept="image/*" onchange="handleFotoUpload(this)" style="display:none">
             </label>
             <div class="tx tm mt4">JPG ou PNG, máx. 900KB — comprimida automaticamente</div>
-            ${nc.foto?'<button class="btn btn-ghost btn-sm mt4" style="font-size:11px;color:var(--red)" onclick="S.newCode.foto=\\'\\';R()">✕ Remover</button>':''}
-          </div>
+            ${nc.foto?`<button class="btn btn-ghost btn-sm mt4" style="font-size:11px;color:var(--red)" onclick="S.newCode.foto='';R()">✕ Remover</button>`:''}</div>
         </div>
       </div>
       <div class="fc g8 mt4">
@@ -917,7 +916,7 @@ function vDetail(){
     <div class="fc g8"><button class="btn btn-sm" onclick="exportPDF(S.sel)">↓ PDF</button><button class="btn btn-sm" onclick="nav('editForm')">✎ Editar</button></div>
   </div>
   <div style="padding:20px;max-width:860px">
-    <div class="card mb-16"><div class="sectitle">Equipamento</div><div style="display:flex;gap:16px;align-items:flex-start">${(()=>{const codeEntry=S.codes.find(c=>c.code===t.codigoAcesso);return codeEntry&&codeEntry.foto?'<img src="'+codeEntry.foto+'" style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1.5px solid var(--g200);flex-shrink:0">':''})()}<div style="flex:1"><div class="g3 mb12">${fld('EPI',t.epi)}${fld('Referência',t.referencia)}${fld('CA',t.ca)}${fld('Amostras',t.amostras)}${fld('Fornecedor',t.fornecedor)}${fld('Entrega',fmtD(t.dataEntrega))}</div>${t.caracteristicas?'<div class="mt8">'+fld('Características',t.caracteristicas)+'</div>':''}</div></div></div>
+    <div class="card mb-16"><div class="sectitle">Equipamento</div><div style="display:flex;gap:16px;align-items:flex-start">${(()=>{const codeEntry=S.codes.find(c=>c.code===t.codigoAcesso);return codeEntry&&codeEntry.foto?`<img src="${codeEntry.foto}" style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1.5px solid var(--g200);flex-shrink:0">`:''})()}<div style="flex:1"><div class="g3 mb12">${fld('EPI',t.epi)}${fld('Referência',t.referencia)}${fld('CA',t.ca)}${fld('Amostras',t.amostras)}${fld('Fornecedor',t.fornecedor)}${fld('Entrega',fmtD(t.dataEntrega))}</div>${t.caracteristicas?'<div class="mt8">'+fld('Características',t.caracteristicas)+'</div>':''}</div></div></div>
     <div class="card mb-16"><div class="sectitle">Cliente e Teste</div><div class="g3 mb12">${fld('Empresa',t.empresa)}${fld('Contato',t.contato)}${fld('Usuário',t.nomeUsuario)}${fld('Cargo',t.cargo)}${fld('Área',t.area)}${fld('Período',t.dataInicio?fmtD(t.dataInicio)+' → '+fmtD(t.dataTermino):'—')}</div>${t.detalhamento?`<div class="mt8">${fld('Detalhamento',t.detalhamento)}</div>`:''}</div>
     <div class="card mb-16"><div class="sectitle">Avaliação por critério</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${CRIT.map(c=>`<div style="background:var(--g50);border:1.5px solid var(--g200);border-radius:8px;padding:10px"><div style="font-size:11px;color:var(--g400);margin-bottom:7px">${c.label}</div>${rbadge(t.avaliacao?.[c.key])}</div>`).join('')}</div></div>
     <div class="card mb-16"><div class="sectitle">Parecer do Usuário</div><div style="background:var(--g50);border-radius:8px;padding:12px;font-size:13px;line-height:1.6;margin-bottom:10px">${t.parecerUsuario||'—'}</div><div class="fc g8 ts mb12"><span class="tm">Decisão:</span>${t.decisaoUsuario==='aprovado'?'<span class="badge bg">✓ Aprovado</span>':t.decisaoUsuario==='rejeitado'?'<span class="badge br">✗ Rejeitado</span>':'<span class="badge bk">Não informado</span>'}</div>${t.assinaturaNome?`<div style="background:var(--blue-l);border:1px solid #BDD9F5;border-radius:8px;padding:10px 12px;font-size:12px;color:#1E4A7A"><span style="font-weight:500">✍ Assinatura digital:</span> ${t.assinaturaNome} — CPF ${t.assinaturaCpf||'não informado'}</div>`:''}</div>
@@ -1035,7 +1034,7 @@ function vForm(){
 }
 function vS1(d,lock){const a=lock?'readonly':'';const codeEntry=lock?S.codes.find(c=>c.code===(S.formCode||'')):null;return`
   <div style="font-size:20px;font-weight:600;margin-bottom:4px">Dados do Equipamento</div>
-  ${codeEntry&&codeEntry.foto?'<img src="'+codeEntry.foto+'" style="width:100%;max-height:180px;object-fit:contain;border-radius:10px;border:1.5px solid var(--g200);margin-bottom:14px">':''}
+  ${codeEntry&&codeEntry.foto?`<img src="${codeEntry.foto}" style="width:100%;max-height:180px;object-fit:contain;border-radius:10px;border:1.5px solid var(--g200);margin-bottom:14px">`:''}
   <div class="ts tm mb20">${lock?'EPI configurado pela Uniluvas — campos somente leitura.':'Informe os dados do EPI enviado para avaliação.'}</div>
   <div class="fg"><label class="lbl req">Nome do EPI</label><input id="f_epi" value="${d.epi}" ${a} placeholder="Ex: Luva de proteção mecânica"></div>
   <div class="g2 mb12"><div class="fg" style="margin:0"><label class="lbl">Referência</label><input id="f_referencia" value="${d.referencia}" ${a} placeholder="Código"></div><div class="fg" style="margin:0"><label class="lbl">CA</label><input id="f_ca" value="${d.ca}" ${a} placeholder="Ex: 12345"></div></div>
