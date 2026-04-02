@@ -427,6 +427,18 @@ function createCode(){
   R();
 }
 function clearBatch(){S.batch=[];S.genCode=null;R();}
+function deleteTest(id){
+  if(!confirm('Excluir esta ficha permanentemente? Esta ação não pode ser desfeita.'))return;
+  S.tests=S.tests.filter(t=>t.id!==id);
+  persist();
+  if(S.sel&&S.sel.id===id){S.sel=null;S.view='admin';}
+  showToast('Ficha excluída.');R();
+}
+function deleteAllTests(){
+  if(!confirm('ATENÇÃO: Excluir TODAS as fichas? Esta ação é irreversível.'))return;
+  if(!confirm('Confirma a exclusão de '+S.tests.length+' ficha(s)?'))return;
+  S.tests=[];persist();showToast('Todas as fichas foram excluídas.');R();
+}
 function editCode(idx){
   S.editCodeIdx=idx;
   const c=S.codes[idx];
@@ -747,21 +759,117 @@ function vAFichas(){
 }
 
 function vARel(){
-  const n=S.tests.length,ap=S.tests.filter(t=>t.decisaoSESMT==='aprovado').length;
+  const n=S.tests.length;
+  const ap=S.tests.filter(t=>t.decisaoSESMT==='aprovado').length;
+  const rj=S.tests.filter(t=>t.decisaoSESMT==='rejeitado').length;
+  const pd=S.tests.filter(t=>!t.decisaoSESMT&&t.decisaoUsuario).length;
+  const pct=n?Math.round(ap/n*100):0;
   const allR=S.tests.flatMap(t=>CRIT.map(c=>t.avaliacao?.[c.key])).filter(Boolean);
   const avgC=allR.length?Math.round(allR.filter(v=>v==='A').length/allR.length*100):0;
-  const pct=n?Math.round(ap/n*100):0;
+  const avgAR=allR.length?Math.round(allR.filter(v=>v==='AR').length/allR.length*100):0;
+  // By company
+  const byEmp={};S.tests.forEach(t=>{if(!byEmp[t.empresa])byEmp[t.empresa]={n:0,ap:0,rj:0,pd:0};byEmp[t.empresa].n++;if(t.decisaoSESMT==='aprovado')byEmp[t.empresa].ap++;else if(t.decisaoSESMT==='rejeitado')byEmp[t.empresa].rj++;else byEmp[t.empresa].pd++;});
+  // By EPI
+  const byEpi={};S.tests.forEach(t=>{if(!byEpi[t.epi])byEpi[t.epi]={n:0,ap:0,rj:0};byEpi[t.epi].n++;if(t.decisaoSESMT==='aprovado')byEpi[t.epi].ap++;else if(t.decisaoSESMT==='rejeitado')byEpi[t.epi].rj++;});
+  // Recent 30 days
+  const cut=new Date();cut.setDate(cut.getDate()-30);
+  const recent=S.tests.filter(t=>new Date(t.createdAt+'T12:00:00')>=cut).length;
   return`
-  <div style="padding:14px 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;border-bottom:1.5px solid var(--g200)">
-    <div class="stat"><div class="sl">Taxa aprovação</div><div class="sv">${pct}%</div></div>
-    <div class="stat"><div class="sl">Critérios aprov.</div><div class="sv">${avgC}%</div></div>
-    <div class="stat"><div class="sl">Total fichas</div><div class="sv">${n}</div></div>
+  <!-- STATS CARDS -->
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:14px 20px;border-bottom:1.5px solid var(--g200)">
+    <div class="stat"><div class="sl">Total</div><div class="sv">${n}</div><div class="ss">fichas</div></div>
+    <div class="stat" style="border-color:#A7E5CB"><div class="sl" style="color:var(--green)">Aprovados</div><div class="sv" style="color:var(--green-d)">${ap}</div><div class="ss" style="color:var(--green)">${pct}%</div></div>
+    <div class="stat" style="border-color:#F0D080"><div class="sl" style="color:var(--amber)">Pend. SESMT</div><div class="sv" style="color:var(--amber-d)">${pd}</div><div class="ss" style="color:var(--amber)">aguardando</div></div>
+    <div class="stat" style="border-color:#F9B0B0"><div class="sl" style="color:var(--red)">Rejeitados</div><div class="sv" style="color:var(--red-d)">${rj}</div><div class="ss" style="color:var(--red)">${n?Math.round(rj/n*100):0}%</div></div>
+    <div class="stat" style="border-color:var(--blue-l)"><div class="sl" style="color:var(--blue)">Últimos 30d</div><div class="sv" style="color:var(--blue)">${recent}</div><div class="ss" style="color:var(--blue)">fichas</div></div>
   </div>
-  <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:24px;border-bottom:1.5px solid var(--g200)">
-    <div><div class="sectitle mb12">Status geral</div>${donutChart()}</div>
-    <div><div class="sectitle mb12">Testes por mês</div>${monthChart()}<div class="fc g12 mt12 tx tm"><div class="fc g6"><div style="width:8px;height:8px;border-radius:2px;background:#0E8F64"></div>Aprov.</div><div class="fc g6"><div style="width:8px;height:8px;border-radius:2px;background:#C43030"></div>Rejeit.</div><div class="fc g6"><div style="width:8px;height:8px;border-radius:2px;background:#C8CDD5"></div>Pend.</div></div></div>
+  <!-- BARRA DE APROVAÇÃO -->
+  <div style="padding:14px 20px;border-bottom:1.5px solid var(--g200)">
+    <div class="ts fw5 mb8">Taxa de aprovação geral</div>
+    ${n===0?'<div class="ts tm">Nenhuma ficha registrada.</div>':`
+    <div style="display:flex;height:22px;border-radius:8px;overflow:hidden;gap:2px;margin-bottom:8px">
+      <div style="flex:${ap};background:var(--green);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;min-width:${ap>0?'30px':'0'}">${ap>0?ap:''}</div>
+      <div style="flex:${pd};background:#F0C040;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#7A4D00;min-width:${pd>0?'30px':'0'}">${pd>0?pd:''}</div>
+      <div style="flex:${rj};background:var(--red);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;min-width:${rj>0?'30px':'0'}">${rj>0?rj:''}</div>
+      ${n-ap-pd-rj>0?`<div style="flex:${n-ap-pd-rj};background:var(--g300);min-width:${n-ap-pd-rj>0?'30px':'0'}"></div>`:''}
+    </div>
+    <div class="fc g16 ts tm">
+      <span><span style="color:var(--green)">■</span> Aprovado (${pct}%)</span>
+      <span><span style="color:#F0C040">■</span> Pend. SESMT</span>
+      <span><span style="color:var(--red)">■</span> Rejeitado</span>
+    </div>`}
   </div>
-  <div style="padding:20px"><div class="sectitle mb12">Desempenho por critério</div><div class="fc g12 mb16 tx tm"><div class="fc g6"><div style="width:8px;height:8px;border-radius:2px;background:#0E8F64"></div>A</div><div class="fc g6"><div style="width:8px;height:8px;border-radius:2px;background:#E89B00"></div>AR</div><div class="fc g6"><div style="width:8px;height:8px;border-radius:2px;background:#C43030"></div>R</div></div>${critChart()}</div>`;
+  <!-- CRITÉRIOS -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1.5px solid var(--g200)">
+    <div style="padding:14px 20px;border-right:1.5px solid var(--g200)">
+      <div class="ts fw5 mb12">Avaliação por critério</div>
+      ${allR.length===0?'<div class="ts tm">Sem dados.</div>':CRIT.map(c=>{
+        const vals=S.tests.map(t=>t.avaliacao?.[c.key]).filter(Boolean);
+        if(!vals.length)return'';
+        const a=vals.filter(v=>v==='A').length,ar=vals.filter(v=>v==='AR').length,r=vals.filter(v=>v==='R').length;
+        const total=vals.length;
+        return`<div style="margin-bottom:9px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+            <span class="ts">${c.label}</span>
+            <span class="ts tm">${Math.round(a/total*100)}% aprovado</span>
+          </div>
+          <div style="display:flex;height:7px;border-radius:4px;overflow:hidden;gap:1px">
+            ${a>0?`<div style="flex:${a};background:var(--green)"></div>`:''}
+            ${ar>0?`<div style="flex:${ar};background:#F0C040"></div>`:''}
+            ${r>0?`<div style="flex:${r};background:var(--red)"></div>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="padding:14px 20px">
+      <div class="ts fw5 mb12">Por empresa</div>
+      ${Object.keys(byEmp).length===0?'<div class="ts tm">Sem dados.</div>':Object.entries(byEmp).sort((a,b)=>b[1].n-a[1].n).slice(0,8).map(([emp,s])=>{
+        const pctA=Math.round(s.ap/s.n*100);
+        return`<div style="margin-bottom:9px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+            <span class="ts fw5" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${emp}</span>
+            <span class="ts tm">${s.n} ficha${s.n!==1?'s':''} · ${pctA}%</span>
+          </div>
+          <div style="display:flex;height:7px;border-radius:4px;overflow:hidden;gap:1px">
+            ${s.ap>0?`<div style="flex:${s.ap};background:var(--green)"></div>`:''}
+            ${s.pd>0?`<div style="flex:${s.pd};background:#F0C040"></div>`:''}
+            ${s.rj>0?`<div style="flex:${s.rj};background:var(--red)"></div>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>
+  <!-- POR EPI + AÇÕES -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+    <div style="padding:14px 20px;border-right:1.5px solid var(--g200)">
+      <div class="ts fw5 mb12">Por tipo de EPI</div>
+      ${Object.keys(byEpi).length===0?'<div class="ts tm">Sem dados.</div>':Object.entries(byEpi).sort((a,b)=>b[1].n-a[1].n).slice(0,8).map(([epi,s])=>{
+        return`<div style="margin-bottom:9px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+            <span class="ts" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${epi}</span>
+            <span class="ts tm">${s.n}</span>
+          </div>
+          <div style="display:flex;height:7px;border-radius:4px;overflow:hidden;gap:1px">
+            ${s.ap>0?`<div style="flex:${s.ap};background:var(--green)"></div>`:''}
+            ${s.rj>0?`<div style="flex:${s.rj};background:var(--red)"></div>`:''}
+            ${(s.n-s.ap-s.rj)>0?`<div style="flex:${s.n-s.ap-s.rj};background:#F0C040"></div>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="padding:14px 20px">
+      <div class="ts fw5 mb12">Ações rápidas</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn" onclick="exportCSV()" style="justify-content:flex-start;text-align:left">📥 Exportar todas as fichas em CSV</button>
+        <div style="height:1px;background:var(--g100)"></div>
+        <div>
+          <div class="ts tm mb8">Zona de perigo</div>
+          <button class="btn" style="color:var(--red);border-color:var(--red-l);justify-content:flex-start;text-align:left" onclick="deleteAllTests()">🗑 Excluir todas as fichas</button>
+          <div class="tx tm mt6">Use apenas para limpar dados de teste antes de entrar em produção.</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
 }
 
 function vACodigos(){
@@ -976,7 +1084,7 @@ function vDetail(){
   return vHeader('admin',t.epi,t.id+' · '+fmtD(t.createdAt))+`
   <div class="pheader">
     <div class="fc g8">${sbadge(t)}</div>
-    <div class="fc g8"><button class="btn btn-sm" onclick="exportPDF(S.sel)">↓ PDF</button><button class="btn btn-sm" onclick="nav('editForm')">✎ Editar</button></div>
+    <div class="fc g8"><button class="btn btn-sm" onclick="exportPDF(S.sel)">↓ PDF</button><button class="btn btn-sm" onclick="nav('editForm')">✎ Editar</button><button class="btn btn-sm" style="color:var(--red)" onclick="deleteTest(S.sel.id)">🗑 Excluir</button></div>
   </div>
   <div style="padding:20px;max-width:860px">
     <div class="card mb-16"><div class="sectitle">Equipamento</div><div style="display:flex;gap:16px;align-items:flex-start">${(()=>{const codeEntry=S.codes.find(c=>c.code===t.codigoAcesso);return codeEntry&&codeEntry.foto?`<img src="${codeEntry.foto}" style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1.5px solid var(--g200);flex-shrink:0">`:''})()}<div style="flex:1"><div class="g3 mb12">${fld('EPI',t.epi)}${fld('Referência',t.referencia)}${fld('CA',t.ca)}${fld('Amostras',t.amostras)}${fld('Fornecedor',t.fornecedor)}${fld('Entrega',fmtD(t.dataEntrega))}</div>${t.caracteristicas?'<div class="mt8">'+fld('Características',t.caracteristicas)+'</div>':''}</div></div></div>
