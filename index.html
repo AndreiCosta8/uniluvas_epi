@@ -266,7 +266,15 @@ function copyText(text,btn){
 // ── URL ROUTING ────────────────────────────────────────
 function handleUrl(){
   const p=new URLSearchParams(window.location.search);
-  const view=p.get('view'), code=(p.get('code')||'').toUpperCase();
+  const view=p.get('view'), code=(p.get('code')||'').toUpperCase(), tab=p.get('tab');
+  // ── Deep-link via ?tab= (vindo do workspace) ───────────────
+  // Mapeia direto pra aba do admin. Aceita: fichas, relatorios, codigos, portais, config
+  if(tab && ['fichas','relatorios','codigos','portais','config'].includes(tab)){
+    history.replaceState({},'',window.location.pathname);
+    S.adminTab = tab;
+    S.view = S.auth ? 'admin' : 'adminAuth';
+    return;
+  }
   if(!view) return;
   // Limpa a URL imediatamente — evita que o refresh reabra a mesma tela
   history.replaceState({},'',window.location.pathname);
