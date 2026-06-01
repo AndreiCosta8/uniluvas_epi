@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Uniluvas — Testes de EPI</title>
+<title>Uniluvas — Testes de EPI · v1.2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -128,6 +128,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 <body>
 <div id="app"></div>
 <script>
+const APP_VERSION='1.2';
 // ── CONSTANTS ──────────────────────────────────────────
 const CRIT=[
   {key:'resistencia',label:'Resistência'},
@@ -144,6 +145,21 @@ const STEPS=['Equipamento','Cliente / Teste','Avaliação','Parecer'];
 // ── STORAGE ────────────────────────────────────────────
 const sv=(k,v)=>{try{localStorage.setItem('uni_'+k,JSON.stringify(v))}catch(e){}};
 const ld=(k,d)=>{try{const v=localStorage.getItem('uni_'+k);return v?JSON.parse(v):d}catch(e){return d}};
+
+// ── IDENTIDADE ESTÁVEL (uid) ───────────────────────────
+function newUid(){return 'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function migrateTests(arr){
+  if(!Array.isArray(arr))return arr;
+  arr.forEach((t,i)=>{
+    if(t&&typeof t==='object'&&!t.uid){
+      const base=new Date((t.createdAt||'2025-01-01')+'T12:00:00').getTime();
+      t.uid='u'+base.toString(36)+'-'+i;
+    }
+  });
+  return arr;
+}
+function idxByKey(k){return S.tests.findIndex(x=>x.uid===k||x.id===k);}
+function findByKey(k){return S.tests.find(x=>x.uid===k||x.id===k);}
 
 // ── CODE GENERATOR (always 6 chars, no confusable) ────
 function mkCode(){
@@ -200,6 +216,14 @@ async function fbSet(key,val){
   const u=getFbUrl();if(!u)return false;
   try{const r=await fetch(u+'/uniluvas/'+key+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(val)});return r.ok;}catch(e){return false;}
 }
+async function fbPatch(key,partial){
+  const u=getFbUrl();if(!u)return false;
+  try{const r=await fetch(u+'/uniluvas/'+key+'.json',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(partial)});return r.ok;}catch(e){return false;}
+}
+// normaliza lista(antigo) OU mapa-por-uid(novo) -> array
+function normTests(v){if(Array.isArray(v))return v.filter(Boolean);if(v&&typeof v==='object')return Object.values(v).filter(Boolean);return [];}
+// array -> mapa {uid: ficha} para gravar no formato novo
+function toMap(arr){const m={};(arr||[]).forEach(t=>{if(t&&t.uid)m[t.uid]=t;});return m;}
 function hasFb(){return!!getFbUrl();}
 
 // ── INIT ───────────────────────────────────────────────
@@ -213,12 +237,19 @@ async function initData(){
   // URLs fixas — todos os dispositivos usam o mesmo banco automaticamente
   S.fbUrl=ld('fburl','https://uniluvas-teste-default-rtdb.firebaseio.com');
   S.baseUrl=ld('baseUrl','https://andreicosta8.github.io/uniluvas_epi');
-  S.tests=ld('tests',null)||DTESTS;S.codes=ld('codes',null)||DCODES;S.portals=ld('portals',null)||DPORTALS;
-  if(hasFb()&&!isFileProtocol()){setTimeout(async()=>{try{const _t=ms=>new Promise((_,r)=>setTimeout(()=>r(new Error('t')),ms));const[ft,fc,fp]=await Promise.race([Promise.all([fbGet('tests'),fbGet('codes'),fbGet('portals')]),_t(6000)]);let ch=false;if(ft){S.tests=ft;sv('tests',ft);ch=true;}if(fc){S.codes=fc;sv('codes',fc);ch=true;}if(fp){S.portals=fp;sv('portals',fp);ch=true;}if(ch&&['home','admin'].includes(S.view))R();}catch(e){}},150);}
+  S.tests=migrateTests(ld('tests',null)||DTESTS);S.codes=ld('codes',null)||DCODES;S.portals=ld('portals',null)||DPORTALS;
+  if(hasFb()&&!isFileProtocol()){setTimeout(async()=>{try{const _t=ms=>new Promise((_,r)=>setTimeout(()=>r(new Error('t')),ms));const[ft,fc,fp]=await Promise.race([Promise.all([fbGet('tests'),fbGet('codes'),fbGet('portals')]),_t(6000)]);let ch=false;if(ft){S.tests=migrateTests(normTests(ft));sv('tests',S.tests);ch=true;}if(fc){S.codes=fc;sv('codes',fc);ch=true;}if(fp){S.portals=fp;sv('portals',fp);ch=true;}if(ch&&['home','admin'].includes(S.view))R();}catch(e){}},150);}
   // Always cache locally for fast reloads
   sv('tests',S.tests);sv('codes',S.codes);sv('portals',S.portals);
 }
-async function persist(){sv('tests',S.tests);if(hasFb()&&!isFileProtocol())fbSet('tests',S.tests);}
+// persist genérico agora SÓ cacheia local (nunca regrava o nó inteiro no FB)
+async function persist(){sv('tests',S.tests);}
+// grava SÓ a ficha alterada (PATCH) — não toca nas fichas dos outros
+function persistFicha(t){sv('tests',S.tests);if(t&&t.uid&&hasFb()&&!isFileProtocol())fbPatch('tests',{[t.uid]:t});}
+// remove SÓ aquela ficha (PATCH com null)
+function removeFicha(uid){sv('tests',S.tests);if(uid&&hasFb()&&!isFileProtocol())fbPatch('tests',{[uid]:null});}
+// regrava o mapa inteiro (PUT) — uso exclusivo do admin: limpar tudo / normalizar formato
+async function persistAll(){sv('tests',S.tests);if(hasFb()&&!isFileProtocol())await fbSet('tests',toMap(S.tests));}
 async function persistC(){sv('codes',S.codes);if(hasFb())fbSet('codes',S.codes);}
 async function persistP(){sv('portals',S.portals);if(hasFb())fbSet('portals',S.portals);}
 
@@ -279,7 +310,7 @@ function handleUrl(){
   }else if(view==='sesmt'){
     if(code){
       // Lê do localStorage local (pode ser diferente do Firebase se outra pessoa gravou)
-      const fresh=ld('tests',S.tests);
+      const fresh=migrateTests(ld('tests',S.tests));
       const t=fresh.find(t=>(t.sesmtCode||'').toUpperCase()===code);
       if(t){
         if(t.decisaoSESMT){S.sesmtCodeErr='Este parecer já foi registrado.';S.view='sesmtEntry';return;}
@@ -294,7 +325,11 @@ function handleUrl(){
 function calcExp(t){if(!t.dataInicio)return null;return new Date(new Date(t.dataInicio+'T12:00:00').getTime()+(parseInt(t.validadeTeste)||30)*864e5);}
 function diasPend(t){if(t.decisaoSESMT||!t.decisaoUsuario)return 0;return Math.floor((Date.now()-new Date(t.createdAt+'T12:00:00').getTime())/(864e5));}
 const fmtD=d=>{if(!d)return'—';try{return new Date(d+'T12:00:00').toLocaleDateString('pt-BR')}catch{return d}};
-function genId(){return'TEST-'+new Date().getFullYear()+'-'+String(S.tests.length+1).padStart(3,'0');}
+function genId(){
+  const yr=new Date().getFullYear();let max=0;
+  S.tests.forEach(t=>{const m=/TEST-\d{4}-(\d+)/.exec(t.id||'');if(m){const n=parseInt(m[1],10);if(n>max)max=n;}});
+  return 'TEST-'+yr+'-'+String(max+1).padStart(3,'0');
+}
 function showToast(msg,t='ok'){S.toast={msg,t};R();setTimeout(()=>{S.toast=null;R()},3200);}
 
 function sbadge(t){
@@ -341,7 +376,7 @@ function nav(v){
   if(v==='admin'&&!S.auth){S.view='adminAuth';R();return;}
   S.view=v;
   if(v==='form')S.form={step:1,d:mkD(),editId:null,codeLock:false};
-  if(v==='editForm'&&S.sel){const t=S.sel;S.form={step:1,d:{...mkD(),...t,...t.avaliacao},editId:t.id,codeLock:false};}
+  if(v==='editForm'&&S.sel){const t=S.sel;S.form={step:1,d:{...mkD(),...t,...t.avaliacao},editId:t.uid,codeLock:false};}
   if(v==='portalEntry'){S.portalCode='';S.portalCodeErr='';}
   if(v==='sesmtEntry'){S.sesmtCode='';S.sesmtCodeErr='';}
   if(v==='formEntry'){S.formCode='';S.formCodeErr='';}
@@ -350,8 +385,12 @@ function nav(v){
     setTimeout(async function(){
       try{
         var ft=await fbGet('tests');
-        if(ft&&JSON.stringify(ft)!==JSON.stringify(S.tests)){
-          S.tests=ft;sv('tests',ft);R();
+        if(ft){
+          var wasArray=Array.isArray(ft);
+          var lst=migrateTests(normTests(ft));
+          if(JSON.stringify(lst)!==JSON.stringify(S.tests)){S.tests=lst;sv('tests',S.tests);R();}
+          else{S.tests=lst;}
+          if(wasArray)persistAll(); // normaliza formato antigo->novo, só o admin dispara
         }
       }catch(e){}
     },400);
@@ -363,7 +402,7 @@ function checkAuth(){
   if(p===S.adminPwd){S.auth=true;S.view='admin';R();}
   else{const e=document.getElementById('aerr');if(e)e.style.display='block';}
 }
-function viewTest(id){S.sel=S.tests.find(t=>t.id===id);S.view='detail';window.scrollTo(0,0);R();}
+function viewTest(id){S.sel=findByKey(id);S.view='detail';window.scrollTo(0,0);R();}
 function setRating(k,v){S.form.d[k]=v;R();}
 function setDec(v){S.form.d.decisaoUsuario=v;R();}
 function saveFields(step){
@@ -383,17 +422,17 @@ function submitForm(){
   saveFields(4);const d=S.form.d;
   const av={};CRIT.forEach(c=>{av[c.key]=d[c.key];});
   if(S.form.editId){
-    const i=S.tests.findIndex(t=>t.id===S.form.editId);
+    const i=idxByKey(S.form.editId);
     if(i>=0){
       if(!S.tests[i].editHistory)S.tests[i].editHistory=[];
       S.tests[i].editHistory.push({ts:new Date().toLocaleString('pt-BR'),by:'Admin'});
       Object.assign(S.tests[i],{epi:d.epi,amostras:d.amostras,dataEntrega:d.dataEntrega,referencia:d.referencia,ca:d.ca,caracteristicas:d.caracteristicas,fornecedor:d.fornecedor,contatoFornecedor:d.contatoFornecedor,empresa:d.empresa,contato:d.contato,nomeUsuario:d.nomeUsuario,cargo:d.cargo,matricula:d.matricula,area:d.area,atividade:d.atividade,detalhamento:d.detalhamento,dataInicio:d.dataInicio,dataTermino:d.dataTermino,avaliacao:av,parecerUsuario:d.parecerUsuario,decisaoUsuario:d.decisaoUsuario});
       S.sel=S.tests[i];
     }
-    persist();S.view='detail';window.scrollTo(0,0);R();
+    persistFicha(S.sel);S.view='detail';window.scrollTo(0,0);R();
   }else{
-    const t={id:genId(),createdAt:new Date().toISOString().split('T')[0],codigoAcesso:S.form.codeLock?(S.formCode||''):'',epi:d.epi,amostras:d.amostras,dataEntrega:d.dataEntrega,referencia:d.referencia,ca:d.ca,caracteristicas:d.caracteristicas,fornecedor:d.fornecedor,contatoFornecedor:d.contatoFornecedor,empresa:d.empresa,contato:d.contato,nomeUsuario:d.nomeUsuario,cargo:d.cargo,matricula:d.matricula,area:d.area,atividade:d.atividade,detalhamento:d.detalhamento,dataInicio:d.dataInicio,dataTermino:d.dataTermino,avaliacao:av,parecerUsuario:d.parecerUsuario,decisaoUsuario:d.decisaoUsuario,assinaturaNome:d.assinaturaNome,assinaturaCpf:d.assinaturaCpf,validadeTeste:d.validadeTeste||'30',statusFicha:d.statusFicha||'ativo',parecerSESMT:null,decisaoSESMT:null,responsavelSESMT:null,dataSESMT:null,sesmtCode:null,editHistory:[]};
-    S.tests.unshift(t);persist();
+    const t={uid:newUid(),id:genId(),createdAt:new Date().toISOString().split('T')[0],codigoAcesso:S.form.codeLock?(S.formCode||''):'',epi:d.epi,amostras:d.amostras,dataEntrega:d.dataEntrega,referencia:d.referencia,ca:d.ca,caracteristicas:d.caracteristicas,fornecedor:d.fornecedor,contatoFornecedor:d.contatoFornecedor,empresa:d.empresa,contato:d.contato,nomeUsuario:d.nomeUsuario,cargo:d.cargo,matricula:d.matricula,area:d.area,atividade:d.atividade,detalhamento:d.detalhamento,dataInicio:d.dataInicio,dataTermino:d.dataTermino,avaliacao:av,parecerUsuario:d.parecerUsuario,decisaoUsuario:d.decisaoUsuario,assinaturaNome:d.assinaturaNome,assinaturaCpf:d.assinaturaCpf,validadeTeste:d.validadeTeste||'30',statusFicha:d.statusFicha||'ativo',parecerSESMT:null,decisaoSESMT:null,responsavelSESMT:null,dataSESMT:null,sesmtCode:null,editHistory:[]};
+    S.tests.unshift(t);persistFicha(t);
     // Notificação por e-mail
     if(S.ejsKey&&S.ejsSvc&&S.ejsTpl&&S.ejsEmails){
       try{const emails=S.ejsEmails.split(',').map(e=>e.trim()).filter(Boolean);for(const em of emails){emailjs.send(S.ejsSvc,S.ejsTpl,{to_email:em,ficha_id:t.id,epi:t.epi,empresa:t.empresa,usuario:t.nomeUsuario,decisao:t.decisaoUsuario==='aprovado'?'Aprovado':'Rejeitado',data:t.createdAt,link:S.baseUrl+'?view=admin'},{publicKey:S.ejsKey});}}catch(e){}
@@ -405,17 +444,17 @@ function saveSESMT(){
   const p=document.getElementById('sp')?.value||'',r=document.getElementById('sr')?.value||'',dd=document.getElementById('sd')?.value||'';
   if(!S.sesmtD){alert('Selecione a decisão.');return;}if(!r.trim()){alert('Informe o responsável.');return;}
   const t=S.sel;t.parecerSESMT=p;t.decisaoSESMT=S.sesmtD;t.responsavelSESMT=r;t.dataSESMT=dd;
-  const i=S.tests.findIndex(x=>x.id===t.id);if(i>=0)S.tests[i]=t;
-  persist();S.view='detail';showToast('Parecer SESMT registrado!');
+  const i=idxByKey(t.uid);if(i>=0)S.tests[i]=t;
+  persistFicha(t);S.view='detail';showToast('Parecer SESMT registrado!');
 }
 function saveSesmtRev(){
   const p=document.getElementById('srp')?.value||'',r=document.getElementById('srr')?.value||'',dd=document.getElementById('srd')?.value||'';
   if(!S.sesmtD2){alert('Selecione a decisão.');return;}if(!r.trim()){alert('Informe o responsável.');return;}
   // reload fresh from storage first
-  S.tests=ld('tests',S.tests);
+  S.tests=migrateTests(ld('tests',S.tests));
   const t=S.sesmtRevTest;t.parecerSESMT=p;t.decisaoSESMT=S.sesmtD2;t.responsavelSESMT=r;t.dataSESMT=dd;
-  const i=S.tests.findIndex(x=>x.id===t.id);if(i>=0)S.tests[i]=t;else S.tests.push(t);
-  persist();S.view='sesmtDone';window.scrollTo(0,0);R();
+  const i=idxByKey(t.uid);if(i>=0)S.tests[i]=t;else S.tests.push(t);
+  persistFicha(t);S.view='sesmtDone';window.scrollTo(0,0);R();
 }
 function createCode(){
   const nc=S.newCode;if(!nc.epi.trim()){alert('Informe o nome do EPI.');return;}
@@ -426,9 +465,9 @@ function createCode(){
   S.newCode={epi:'',referencia:'',ca:'',amostras:'',dataEntrega:'',caracteristicas:'',fornecedor:'',foto:''};  S.editCodeIdx=null;
   R();
 }
-function deleteTest(id){if(!confirm('Excluir esta ficha?'))return;S.tests=S.tests.filter(t=>t.id!==id);persist();if(S.sel&&S.sel.id===id){S.sel=null;S.view='admin';}showToast('Ficha excluída.');R();}
-function deleteAllTests(){if(!confirm('Excluir TODAS as fichas?'))return;if(!confirm('Confirmar exclusão de '+S.tests.length+' ficha(s)?'))return;S.tests=[];persist();showToast('Fichas excluídas.');R();}
-function loadExamples(){if(S.tests.length>0&&!confirm('Já existem fichas. Adicionar exemplos mesmo assim?'))return;const ex=DTESTS.map(t=>({...t,id:genId()+'E',createdAt:new Date().toISOString().split('T')[0]}));S.tests=[...ex,...S.tests];persist();showToast('Exemplos adicionados!');R();}
+function deleteTest(id){if(!confirm('Excluir esta ficha?'))return;const t=findByKey(id);const uid=t?t.uid:id;S.tests=S.tests.filter(x=>x.uid!==uid&&x.id!==id);removeFicha(uid);if(S.sel&&(S.sel.uid===uid||S.sel.id===id)){S.sel=null;S.view='admin';}showToast('Ficha excluída.');R();}
+function deleteAllTests(){if(!confirm('Excluir TODAS as fichas?'))return;if(!confirm('Confirmar exclusão de '+S.tests.length+' ficha(s)?'))return;S.tests=[];persistAll();showToast('Fichas excluídas.');R();}
+function loadExamples(){if(S.tests.length>0&&!confirm('Já existem fichas. Adicionar exemplos mesmo assim?'))return;const b=Date.now();const ex=DTESTS.map((t,k)=>({...t,uid:newUid(),id:'TEST-EX-'+(b+k).toString(36).slice(-4).toUpperCase(),createdAt:new Date().toISOString().split('T')[0]}));S.tests=[...ex,...S.tests];sv('tests',S.tests);if(hasFb()&&!isFileProtocol()){const mp={};ex.forEach(e=>{mp[e.uid]=e;});fbPatch('tests',mp);}showToast('Exemplos adicionados!');R();}
 function clearBatch(){S.batch=[];S.genCode=null;R();}
 function editCode(idx){
   S.editCodeIdx=idx;
@@ -477,8 +516,8 @@ function createPortal(){
 function genSesmtCode(){
   const t=S.sel;if(t.sesmtCode)return;
   const code=mkCode();t.sesmtCode=code;
-  const i=S.tests.findIndex(x=>x.id===t.id);if(i>=0)S.tests[i]=t;
-  persist();showToast('Código SESMT gerado!');R();
+  const i=idxByKey(t.uid);if(i>=0)S.tests[i]=t;
+  persistFicha(t);showToast('Código SESMT gerado!');R();
 }
 function lookupPortal(){
   const code=S.portalCode.trim().toUpperCase();
@@ -500,7 +539,7 @@ async function lookupSesmtCode(){
   if(code.length!==6){S.sesmtCodeErr='Código deve ter 6 caracteres.';R();return;}
   // Try cloud first, then localStorage
   let freshTests=hasFb()?(await fbGet('tests'))||ld('tests',S.tests):ld('tests',S.tests);
-  if(freshTests)sv('tests',freshTests);
+  if(freshTests){freshTests=migrateTests(normTests(freshTests));sv('tests',freshTests);}
   const t=(freshTests||S.tests).find(t=>(t.sesmtCode||'').toUpperCase()===code);
   if(!t){S.sesmtCodeErr='Código não encontrado. Verifique o código com a equipe Uniluvas.';R();return;}
   if(t.decisaoSESMT){S.sesmtCodeErr='Este parecer já foi registrado anteriormente.';R();return;}
@@ -543,12 +582,12 @@ async function saveSettings(){
   if(es){S.ejsSvc=es;sv('ejsSvc',es);}
   if(et){S.ejsTpl=et;sv('ejsTpl',et);}
   if(ee){S.ejsEmails=ee;sv('ejsEmails',ee);}
-  if(S.fbUrl&&newFb){showToast('Sincronizando...');await Promise.all([fbSet('tests',S.tests),fbSet('codes',S.codes),fbSet('portals',S.portals)]);}
+  if(S.fbUrl&&newFb){showToast('Sincronizando...');await Promise.all([fbSet('tests',toMap(S.tests)),fbSet('codes',S.codes),fbSet('portals',S.portals)]);}
   showToast('Configurações salvas!');
 }
 
 // ── EXPORT ─────────────────────────────────────────────
-async function syncAll(){if(!hasFb()){showToast('Firebase não configurado','err');return;}showToast('Sincronizando...');var ft=await fbGet('tests'),fc=await fbGet('codes'),fp=await fbGet('portals');if(ft){S.tests=ft;sv('tests',ft);}if(fc){S.codes=fc;sv('codes',fc);}if(fp){S.portals=fp;sv('portals',fp);}showToast('Atualizado!');R();}
+async function syncAll(){if(!hasFb()){showToast('Firebase não configurado','err');return;}showToast('Sincronizando...');var ft=await fbGet('tests'),fc=await fbGet('codes'),fp=await fbGet('portals');if(ft){S.tests=migrateTests(normTests(ft));sv('tests',S.tests);}if(fc){S.codes=fc;sv('codes',fc);}if(fp){S.portals=fp;sv('portals',fp);}showToast('Atualizado!');R();}
 function exportCSV(){
   const h=['ID','Data','EPI','Referência','CA','Fornecedor','Empresa','Usuário','Cargo','Área','Início','Fim','Res','Dur','Des','Hig','Ade uso','Conf','Ader','Iso','Dec.Usuário','Dec.SESMT','Resp.SESMT'];
   const rows=S.tests.map(t=>[t.id,t.createdAt,t.epi,t.referencia,t.ca,t.fornecedor,t.empresa,t.nomeUsuario,t.cargo,t.area,t.dataInicio,t.dataTermino,...CRIT.map(c=>t.avaliacao?.[c.key]||''),t.decisaoUsuario,t.decisaoSESMT,t.responsavelSESMT]);
@@ -808,7 +847,7 @@ function vAFichas(){
   <div style="background:var(--w)">
     <div class="thdr tcols7"><div>EPI / Referência</div><div>Empresa</div><div class="hm">Data</div><div>Avaliação</div><div>Status</div><div class="hm">Ações</div></div>
     ${fl.length===0?`<div class="empty">📋 Nenhuma ficha encontrada</div>`:''}
-    ${fl.map(t=>`<div class="trow tcols7"><div style="cursor:pointer" onclick="viewTest('${t.id}')"><div class="fw5">${t.epi}</div><div class="tx tm mt4">${t.referencia||'—'} · CA ${t.ca||'—'}</div></div><div style="cursor:pointer" onclick="viewTest('${t.id}')"><div>${t.empresa}</div><div class="tx tm">${t.contato||''}</div></div><div class="ts tm hm" style="cursor:pointer" onclick="viewTest('${t.id}')">${fmtD(t.createdAt)}</div><div style="cursor:pointer" onclick="viewTest('${t.id}')">${abadge(t.avaliacao)}</div><div style="cursor:pointer" onclick="viewTest('${t.id}')">${sbadge(t)}</div><div class="hm" style="display:flex;gap:6px;align-items:center"><button class="btn btn-sm" style="padding:3px 8px;font-size:11px" onclick="event.stopPropagation();S.sel=S.tests.find(x=>x.id==='${t.id}');nav('editForm')">✎</button><button class="btn btn-sm" style="padding:3px 8px;font-size:11px;color:var(--red)" onclick="event.stopPropagation();deleteTest('${t.id}')">🗑</button></div></div>`).join('')}
+    ${fl.map(t=>`<div class="trow tcols7"><div style="cursor:pointer" onclick="viewTest('${t.uid}')"><div class="fw5">${t.epi}</div><div class="tx tm mt4">${t.referencia||'—'} · CA ${t.ca||'—'}</div></div><div style="cursor:pointer" onclick="viewTest('${t.uid}')"><div>${t.empresa}</div><div class="tx tm">${t.contato||''}</div></div><div class="ts tm hm" style="cursor:pointer" onclick="viewTest('${t.uid}')">${fmtD(t.createdAt)}</div><div style="cursor:pointer" onclick="viewTest('${t.uid}')">${abadge(t.avaliacao)}</div><div style="cursor:pointer" onclick="viewTest('${t.uid}')">${sbadge(t)}</div><div class="hm" style="display:flex;gap:6px;align-items:center"><button class="btn btn-sm" style="padding:3px 8px;font-size:11px" onclick="event.stopPropagation();S.sel=findByKey('${t.uid}');nav('editForm')">✎</button><button class="btn btn-sm" style="padding:3px 8px;font-size:11px;color:var(--red)" onclick="event.stopPropagation();deleteTest('${t.uid}')">🗑</button></div></div>`).join('')}
   </div>`;
 }
 
@@ -1057,7 +1096,7 @@ function vDetail(){
   return vHeader('admin',t.epi,t.id+' · '+fmtD(t.createdAt))+`
   <div class="pheader">
     <div class="fc g8">${sbadge(t)}</div>
-    <div class="fc g8"><button class="btn btn-sm" onclick="exportPDF(S.sel)">↓ PDF</button><button class="btn btn-sm" onclick="nav('editForm')">✎ Editar</button><select class="btn btn-sm" style="cursor:pointer" onchange="const _i=S.tests.findIndex(x=>x.id===S.sel.id);if(_i>=0){S.tests[_i].statusFicha=this.value;S.sel.statusFicha=this.value;}persist();R()"><option value="ativo" ${!S.sel.statusFicha||S.sel.statusFicha==='ativo'?'selected':''}>Em andamento</option><option value="emuso" ${S.sel.statusFicha==='emuso'?'selected':''}>Em uso</option><option value="arquivada" ${S.sel.statusFicha==='arquivada'?'selected':''}>Arquivada</option></select><button class="btn btn-sm" style="color:var(--red)" onclick="deleteTest(S.sel.id)">🗑 Excluir</button></div>
+    <div class="fc g8"><button class="btn btn-sm" onclick="exportPDF(S.sel)">↓ PDF</button><button class="btn btn-sm" onclick="nav('editForm')">✎ Editar</button><select class="btn btn-sm" style="cursor:pointer" onchange="const _i=idxByKey(S.sel.uid);if(_i>=0){S.tests[_i].statusFicha=this.value;S.sel.statusFicha=this.value;}persistFicha(S.sel);R()"><option value="ativo" ${!S.sel.statusFicha||S.sel.statusFicha==='ativo'?'selected':''}>Em andamento</option><option value="emuso" ${S.sel.statusFicha==='emuso'?'selected':''}>Em uso</option><option value="arquivada" ${S.sel.statusFicha==='arquivada'?'selected':''}>Arquivada</option></select><button class="btn btn-sm" style="color:var(--red)" onclick="deleteTest(S.sel.uid)">🗑 Excluir</button></div>
   </div>
   <div style="padding:20px;max-width:860px">
     ${(()=>{const _exp=calcExp(t);let _w="";if(_exp&&_exp<new Date())_w='<div style="background:#FDEAEA;border:1.5px solid var(--red-l);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--red-d)">⚠ <strong>Período de teste encerrado</strong> — Prazo de '+(t.validadeTeste||30)+' dias superado.</div>';else{const _r=_exp?Math.ceil((_exp-Date.now())/(864e5)):null;if(_r!==null&&_r<=5)_w='<div style="background:var(--amber-l);border:1.5px solid #F0C060;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--amber-d)">⚠ <strong>Teste vence em breve</strong> — Restam '+_r+' dia'+(_r!==1?"s":"")+' para encerrar.</div>';}return _w;})()}<div class="card mb-16"><div class="sectitle">Equipamento</div><div style="display:flex;gap:16px;align-items:flex-start">${(()=>{const codeEntry=S.codes.find(c=>c.code===t.codigoAcesso);return codeEntry&&codeEntry.foto?`<img src="${codeEntry.foto}" style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1.5px solid var(--g200);flex-shrink:0">`:''})()}<div style="flex:1"><div class="g3 mb12">${fld('EPI',t.epi)}${fld('Referência',t.referencia)}${fld('CA',t.ca)}${fld('Amostras',t.amostras)}${fld('Fornecedor',t.fornecedor)}${fld('Entrega',fmtD(t.dataEntrega))}</div>${t.caracteristicas?'<div class="mt8">'+fld('Características',t.caracteristicas)+'</div>':''}</div></div></div>
@@ -1149,7 +1188,7 @@ function vPortal(){
   return vHeader(null,'Portal — '+co.empresa,tests.length+' teste(s) disponível(is)')+`
   <div style="max-width:860px;margin:0 auto;padding:20px">
     ${tests.length===0?`<div class="empty">📋 Nenhum teste registrado para esta empresa.</div>`:
-    portalChart(tests)+tests.map(t=>`<div class="card card-p mb12" onclick="S.selPT=S.tests.find(x=>x.id==='${t.id}');S.view='portalDetail';window.scrollTo(0,0);R()">
+    portalChart(tests)+tests.map(t=>`<div class="card card-p mb12" onclick="S.selPT=findByKey('${t.uid}');S.view='portalDetail';window.scrollTo(0,0);R()">
       <div class="fb mb12"><div><div class="fw6" style="font-size:14px">${t.epi}</div><div class="tx tm mt4">${[t.referencia,t.ca?'CA '+t.ca:''].filter(Boolean).join(' · ')}</div></div>${sbadge(t)}</div>
       <div class="g3">${fld('Usuário',t.nomeUsuario+(t.cargo?' · '+t.cargo:''))}${fld('Período',t.dataInicio?fmtD(t.dataInicio)+' → '+fmtD(t.dataTermino):fmtD(t.createdAt))}${fld('Avaliação geral',abadge(t.avaliacao))}</div>
     </div>`).join('')}
@@ -1179,7 +1218,7 @@ function vForm(){
   const cancelAct=step===1?(isEdit?"nav('detail')":(codeLock?"nav('formEntry')":`nav('home')`)):`fBack()`;
   return vHeader()+`
   <div class="sbar">${sh}</div>
-  ${isEdit?`<div class="banner ban-blue">✎ Modo de edição — ${editId}</div>`:''}
+  ${isEdit?`<div class="banner ban-blue">✎ Modo de edição — ${S.sel?S.sel.id:''}</div>`:''}
   ${codeLock&&step>1?`<div class="banner ban-green">✓ EPI pré-configurado via código de acesso</div>`:''}
   <div style="max-width:660px;margin:24px auto;padding:0 20px pxs">
     ${step===1?vS1(d,codeLock):step===2?vS2(d):step===3?vS3(d):vS4(d)}
@@ -1280,7 +1319,7 @@ function R(){
 
 // ── BOOTSTRAP ──────────────────────────────────────────
 (async()=>{
-  try{await initData();}catch(e){S.tests=ld('tests',null)||DTESTS;S.codes=ld('codes',null)||DCODES;S.portals=ld('portals',null)||DPORTALS;}
+  try{await initData();}catch(e){S.tests=migrateTests(ld('tests',null)||DTESTS);S.codes=ld('codes',null)||DCODES;S.portals=ld('portals',null)||DPORTALS;}
   handleUrl();
   R();
 })();
