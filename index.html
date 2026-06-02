@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Uniluvas — Testes de EPI · v1.2</title>
+<title>Uniluvas — Testes de EPI · v1.4.1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -128,7 +128,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 <body>
 <div id="app"></div>
 <script>
-const APP_VERSION='1.2';
+const APP_VERSION='1.4.1';
 // ── CONSTANTS ──────────────────────────────────────────
 const CRIT=[
   {key:'resistencia',label:'Resistência'},
@@ -155,11 +155,15 @@ function migrateTests(arr){
       const base=new Date((t.createdAt||'2025-01-01')+'T12:00:00').getTime();
       t.uid='u'+base.toString(36)+'-'+i;
     }
+    // v1.4: scrub do CPF nas fichas legadas (LGPD — dado não mais coletado)
+    if(t&&typeof t==='object'&&'assinaturaCpf'in t){delete t.assinaturaCpf;}
   });
   return arr;
 }
 function idxByKey(k){return S.tests.findIndex(x=>x.uid===k||x.id===k);}
 function findByKey(k){return S.tests.find(x=>x.uid===k||x.id===k);}
+// hash simples para não armazenar senha admin em texto puro
+function hashPwd(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return 'h'+Math.abs(h).toString(36);}
 
 // ── CODE GENERATOR (always 6 chars, no confusable) ────
 function mkCode(){
@@ -171,8 +175,8 @@ function mkCode(){
 
 // ── DEFAULT DATA ───────────────────────────────────────
 const DTESTS=[
-  {id:'TEST-2025-001',createdAt:'2025-03-10',codigoAcesso:'LUVA01',epi:'Luva de Proteção Mecânica',amostras:'6',dataEntrega:'2025-03-05',referencia:'LPM-450',ca:'12345',caracteristicas:'Couro bovino grão, forro algodão, punho longo 30cm',fornecedor:'Safety Pro',contatoFornecedor:'(11) 99999-8888',empresa:'Mineração Vale Norte',contato:'João Silva',nomeUsuario:'Carlos Mendes',cargo:'Operador de Máquinas',matricula:'12347',area:'Mineração',atividade:'Operação de Equipamentos Pesados',detalhamento:'Turno de 8h com manuseio de peças metálicas.',dataInicio:'2025-03-06',horaInicio:'07:00',dataTermino:'2025-03-09',horaTermino:'16:00',validadeTeste:'30',statusFicha:'emuso',avaliacao:{resistencia:'A',durabilidade:'A',desempenho:'AR',higienizacao:'A',adequacao:'A',conforto:'AR',aderencia:'A',isolacaoTermica:'A'},parecerUsuario:'Luva apresentou boa resistência. Conforto razoável após uso prolongado.',decisaoUsuario:'aprovado',assinaturaNome:'Carlos Mendes',assinaturaCpf:'123.456.789-00',parecerSESMT:'EPI aprovado para uso contínuo.',decisaoSESMT:'aprovado',responsavelSESMT:'Dr. Paulo Ribeiro',dataSESMT:'2025-03-12',sesmtCode:null,editHistory:[]},
-  {id:'TEST-2025-002',createdAt:'2025-03-18',codigoAcesso:'BOTA01',epi:'Bota de Segurança PVC Cano Longo',amostras:'4',dataEntrega:'2025-03-14',referencia:'BSP-300',ca:'67890',caracteristicas:'PVC injetado, cano longo 40cm, biqueira de aço',fornecedor:'BoteriaGeral',contatoFornecedor:'(51) 4412-9090',empresa:'Agropecuária Santos',contato:'Maria Ferreira',nomeUsuario:'Roberto Alves',cargo:'Trabalhador Rural',matricula:'00891',area:'Agropecuária',atividade:'Lavoura irrigada',detalhamento:'Uso em campo úmido por até 10h/dia.',dataInicio:'2025-03-15',horaInicio:'06:00',dataTermino:'2025-03-17',horaTermino:'16:00',validadeTeste:'30',statusFicha:'ativo',avaliacao:{resistencia:'A',durabilidade:'AR',desempenho:'A',higienizacao:'A',adequacao:'A',conforto:'AR',aderencia:'A',isolacaoTermica:'AR'},parecerUsuario:'Boa resistência. Conforto diminui após 6h.',decisaoUsuario:'aprovado',assinaturaNome:'Roberto Alves',assinaturaCpf:'987.654.321-00',parecerSESMT:null,decisaoSESMT:null,responsavelSESMT:null,dataSESMT:null,sesmtCode:null,editHistory:[]}
+  {id:'TEST-2025-001',createdAt:'2025-03-10',codigoAcesso:'LUVA01',epi:'Luva de Proteção Mecânica',amostras:'6',dataEntrega:'2025-03-05',referencia:'LPM-450',ca:'12345',caracteristicas:'Couro bovino grão, forro algodão, punho longo 30cm',fornecedor:'Safety Pro',contatoFornecedor:'(11) 99999-8888',empresa:'Mineração Vale Norte',contato:'João Silva',nomeUsuario:'Carlos Mendes',cargo:'Operador de Máquinas',matricula:'12347',area:'Mineração',atividade:'Operação de Equipamentos Pesados',detalhamento:'Turno de 8h com manuseio de peças metálicas.',dataInicio:'2025-03-06',horaInicio:'07:00',dataTermino:'2025-03-09',horaTermino:'16:00',validadeTeste:'30',statusFicha:'emuso',avaliacao:{resistencia:'A',durabilidade:'A',desempenho:'AR',higienizacao:'A',adequacao:'A',conforto:'AR',aderencia:'A',isolacaoTermica:'A'},parecerUsuario:'Luva apresentou boa resistência. Conforto razoável após uso prolongado.',decisaoUsuario:'aprovado',assinaturaNome:'Carlos Mendes',parecerSESMT:'EPI aprovado para uso contínuo.',decisaoSESMT:'aprovado',responsavelSESMT:'Dr. Paulo Ribeiro',dataSESMT:'2025-03-12',sesmtCode:null,editHistory:[]},
+  {id:'TEST-2025-002',createdAt:'2025-03-18',codigoAcesso:'BOTA01',epi:'Bota de Segurança PVC Cano Longo',amostras:'4',dataEntrega:'2025-03-14',referencia:'BSP-300',ca:'67890',caracteristicas:'PVC injetado, cano longo 40cm, biqueira de aço',fornecedor:'BoteriaGeral',contatoFornecedor:'(51) 4412-9090',empresa:'Agropecuária Santos',contato:'Maria Ferreira',nomeUsuario:'Roberto Alves',cargo:'Trabalhador Rural',matricula:'00891',area:'Agropecuária',atividade:'Lavoura irrigada',detalhamento:'Uso em campo úmido por até 10h/dia.',dataInicio:'2025-03-15',horaInicio:'06:00',dataTermino:'2025-03-17',horaTermino:'16:00',validadeTeste:'30',statusFicha:'ativo',avaliacao:{resistencia:'A',durabilidade:'AR',desempenho:'A',higienizacao:'A',adequacao:'A',conforto:'AR',aderencia:'A',isolacaoTermica:'AR'},parecerUsuario:'Boa resistência. Conforto diminui após 6h.',decisaoUsuario:'aprovado',assinaturaNome:'Roberto Alves',parecerSESMT:null,decisaoSESMT:null,responsavelSESMT:null,dataSESMT:null,sesmtCode:null,editHistory:[]}
 ];
 const DCODES=[
   {code:'CAMPO1',epi:'Luva de Proteção Mecânica',referencia:'LPM-450',ca:'12345',caracteristicas:'Couro bovino grão, punho longo',fornecedor:'Safety Pro',createdAt:'2024-12-01'},
@@ -185,12 +189,12 @@ const DPORTALS=[
 ];
 
 // ── STATE ──────────────────────────────────────────────
-function mkD(){return{epi:'',amostras:'',dataEntrega:'',referencia:'',ca:'',caracteristicas:'',fornecedor:'',contatoFornecedor:'',empresa:'',contato:'',nomeUsuario:'',cargo:'',matricula:'',area:'',atividade:'',detalhamento:'',dataInicio:'',horaInicio:'',dataTermino:'',horaTermino:'',resistencia:'',durabilidade:'',desempenho:'',higienizacao:'',adequacao:'',conforto:'',aderencia:'',isolacaoTermica:'',parecerUsuario:'',decisaoUsuario:'',assinaturaNome:'',assinaturaCpf:'',validadeTeste:'30',statusFicha:'ativo'};}
+function mkD(){return{epi:'',amostras:'',dataEntrega:'',referencia:'',ca:'',caracteristicas:'',fornecedor:'',contatoFornecedor:'',empresa:'',contato:'',nomeUsuario:'',cargo:'',matricula:'',area:'',atividade:'',detalhamento:'',dataInicio:'',horaInicio:'',dataTermino:'',horaTermino:'',resistencia:'',durabilidade:'',desempenho:'',higienizacao:'',adequacao:'',conforto:'',aderencia:'',isolacaoTermica:'',parecerUsuario:'',decisaoUsuario:'',assinaturaNome:'',assinaturaFoto:'',validadeTeste:'30',statusFicha:'ativo'};}
 
 let S={
-  view:'home', auth:false,
+  view:'home', auth:false, lastSync:'',
   tests:[], codes:[], portals:[],
-  adminTab:'fichas', adminPwd:'uniluvas', baseUrl:'',
+  adminTab:'fichas', adminPwd:'h4y1wq9', baseUrl:'',
   form:{step:1,d:mkD(),editId:null,codeLock:false},
   sel:null, selPT:null,
   fSt:'todos', fEmp:'', fDateFrom:'', fDateTo:'',
@@ -228,7 +232,7 @@ function hasFb(){return!!getFbUrl();}
 
 // ── INIT ───────────────────────────────────────────────
 async function initData(){
-  S.adminPwd=ld('pwd','uniluvas');
+  var _pw=ld('pwd','');if(!_pw||!_pw.startsWith('h')){_pw=hashPwd(_pw||'uniluvas');sv('pwd',_pw);}S.adminPwd=_pw;
   S.ejsKey=ld('ejsKey','VlfCd389hV00z53lU');
   S.ejsSvc=ld('ejsSvc','service_9l9iupd');
   S.ejsTpl=ld('ejsTpl','template_lkotw6h');
@@ -245,11 +249,29 @@ async function initData(){
 // persist genérico agora SÓ cacheia local (nunca regrava o nó inteiro no FB)
 async function persist(){sv('tests',S.tests);}
 // grava SÓ a ficha alterada (PATCH) — não toca nas fichas dos outros
-function persistFicha(t){sv('tests',S.tests);if(t&&t.uid&&hasFb()&&!isFileProtocol())fbPatch('tests',{[t.uid]:t});}
+async function persistFicha(t){
+  sv('tests',S.tests);
+  if(t&&t.uid&&hasFb()&&!isFileProtocol()){
+    const ok=await fbPatch('tests',{[t.uid]:t});
+    S.lastSync=ok?'☁️ Sincronizado':'⚠️ Falha na sincronização';R();
+  } else { S.lastSync='📱 Modo local'; }
+}
 // remove SÓ aquela ficha (PATCH com null)
-function removeFicha(uid){sv('tests',S.tests);if(uid&&hasFb()&&!isFileProtocol())fbPatch('tests',{[uid]:null});}
+async function removeFicha(uid){
+  sv('tests',S.tests);
+  if(uid&&hasFb()&&!isFileProtocol()){
+    const ok=await fbPatch('tests',{[uid]:null});
+    S.lastSync=ok?'☁️ Sincronizado':'⚠️ Falha na sincronização';R();
+  }
+}
 // regrava o mapa inteiro (PUT) — uso exclusivo do admin: limpar tudo / normalizar formato
-async function persistAll(){sv('tests',S.tests);if(hasFb()&&!isFileProtocol())await fbSet('tests',toMap(S.tests));}
+async function persistAll(){
+  sv('tests',S.tests);
+  if(hasFb()&&!isFileProtocol()){
+    const ok=await fbSet('tests',toMap(S.tests));
+    S.lastSync=ok?'☁️ Sincronizado':'⚠️ Falha na sincronização';R();
+  }
+}
 async function persistC(){sv('codes',S.codes);if(hasFb())fbSet('codes',S.codes);}
 async function persistP(){sv('portals',S.portals);if(hasFb())fbSet('portals',S.portals);}
 
@@ -399,7 +421,7 @@ function nav(v){
 }
 function checkAuth(){
   const p=document.getElementById('ap')?.value;
-  if(p===S.adminPwd){S.auth=true;S.view='admin';R();}
+  if(hashPwd(p)===S.adminPwd){S.auth=true;S.view='admin';R();}
   else{const e=document.getElementById('aerr');if(e)e.style.display='block';}
 }
 function viewTest(id){S.sel=findByKey(id);S.view='detail';window.scrollTo(0,0);R();}
@@ -407,7 +429,7 @@ function setRating(k,v){S.form.d[k]=v;R();}
 function setDec(v){S.form.d.decisaoUsuario=v;R();}
 function saveFields(step){
   const d=S.form.d;
-  const m={1:['epi','referencia','ca','amostras','dataEntrega','caracteristicas','fornecedor','contatoFornecedor'],2:['empresa','contato','nomeUsuario','cargo','matricula','area','atividade','detalhamento','dataInicio','horaInicio','dataTermino','horaTermino','validadeTeste','statusFicha'],4:['parecerUsuario','assinaturaNome','assinaturaCpf']};
+  const m={1:['epi','referencia','ca','amostras','dataEntrega','caracteristicas','fornecedor','contatoFornecedor'],2:['empresa','contato','nomeUsuario','cargo','matricula','area','atividade','detalhamento','dataInicio','horaInicio','dataTermino','horaTermino','validadeTeste','statusFicha'],4:['parecerUsuario','assinaturaNome']};
   (m[step]||[]).forEach(id=>{const el=document.getElementById('f_'+id);if(el)d[id]=el.value;});
 }
 function fNext(){
@@ -431,11 +453,12 @@ function submitForm(){
     }
     persistFicha(S.sel);S.view='detail';window.scrollTo(0,0);R();
   }else{
-    const t={uid:newUid(),id:genId(),createdAt:new Date().toISOString().split('T')[0],codigoAcesso:S.form.codeLock?(S.formCode||''):'',epi:d.epi,amostras:d.amostras,dataEntrega:d.dataEntrega,referencia:d.referencia,ca:d.ca,caracteristicas:d.caracteristicas,fornecedor:d.fornecedor,contatoFornecedor:d.contatoFornecedor,empresa:d.empresa,contato:d.contato,nomeUsuario:d.nomeUsuario,cargo:d.cargo,matricula:d.matricula,area:d.area,atividade:d.atividade,detalhamento:d.detalhamento,dataInicio:d.dataInicio,dataTermino:d.dataTermino,avaliacao:av,parecerUsuario:d.parecerUsuario,decisaoUsuario:d.decisaoUsuario,assinaturaNome:d.assinaturaNome,assinaturaCpf:d.assinaturaCpf,validadeTeste:d.validadeTeste||'30',statusFicha:d.statusFicha||'ativo',parecerSESMT:null,decisaoSESMT:null,responsavelSESMT:null,dataSESMT:null,sesmtCode:null,editHistory:[]};
+    if(!d.assinaturaFoto){alert('Capture a foto do empregado antes de enviar a ficha.');return;}
+    const t={uid:newUid(),id:genId(),createdAt:new Date().toISOString().split('T')[0],codigoAcesso:S.form.codeLock?(S.formCode||''):'',epi:d.epi,amostras:d.amostras,dataEntrega:d.dataEntrega,referencia:d.referencia,ca:d.ca,caracteristicas:d.caracteristicas,fornecedor:d.fornecedor,contatoFornecedor:d.contatoFornecedor,empresa:d.empresa,contato:d.contato,nomeUsuario:d.nomeUsuario,cargo:d.cargo,matricula:d.matricula,area:d.area,atividade:d.atividade,detalhamento:d.detalhamento,dataInicio:d.dataInicio,dataTermino:d.dataTermino,avaliacao:av,parecerUsuario:d.parecerUsuario,decisaoUsuario:d.decisaoUsuario,assinaturaNome:d.assinaturaNome,assinaturaFoto:d.assinaturaFoto,validadeTeste:d.validadeTeste||'30',statusFicha:d.statusFicha||'ativo',parecerSESMT:null,decisaoSESMT:null,responsavelSESMT:null,dataSESMT:null,sesmtCode:null,editHistory:[]};
     S.tests.unshift(t);persistFicha(t);
     // Notificação por e-mail
     if(S.ejsKey&&S.ejsSvc&&S.ejsTpl&&S.ejsEmails){
-      try{const emails=S.ejsEmails.split(',').map(e=>e.trim()).filter(Boolean);for(const em of emails){emailjs.send(S.ejsSvc,S.ejsTpl,{to_email:em,ficha_id:t.id,epi:t.epi,empresa:t.empresa,usuario:t.nomeUsuario,decisao:t.decisaoUsuario==='aprovado'?'Aprovado':'Rejeitado',data:t.createdAt,link:S.baseUrl+'?view=admin'},{publicKey:S.ejsKey});}}catch(e){}
+      try{const emails=S.ejsEmails.split(',').map(e=>e.trim()).filter(Boolean);for(const em of emails){emailjs.send(S.ejsSvc,S.ejsTpl,{to_email:em,ficha_id:t.id,epi:t.epi,empresa:t.empresa,usuario:t.nomeUsuario,decisao:t.decisaoUsuario==='aprovado'?'Aprovado':'Rejeitado',data:t.createdAt,link:S.baseUrl+'?view=admin'},{publicKey:S.ejsKey});}}catch(e){showToast('⚠ Falha ao enviar notificação por email','err');}
     }
     S.view='success';window.scrollTo(0,0);R();
   }
@@ -486,6 +509,25 @@ function saveCodeEdit(){
   S.newCode={epi:'',referencia:'',ca:'',amostras:'',dataEntrega:'',caracteristicas:'',fornecedor:'',foto:''};
   S.editCodeIdx=null;S.genCode=null;
   showToast('Código atualizado!');R();
+}
+function handleAssinaturaFoto(input){
+  const file=input.files[0];if(!file)return;
+  if(file.size>5000000){alert('Imagem muito grande. Use uma foto menor que 5MB.');input.value='';return;}
+  const img=new Image();const reader=new FileReader();
+  reader.onload=e=>{
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      const max=720;let w=img.width,h=img.height;
+      if(w>max){h=Math.round(h*max/w);w=max;}
+      if(h>max){w=Math.round(w*max/h);h=max;}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      S.form.d.assinaturaFoto=canvas.toDataURL('image/jpeg',0.78);
+      R();
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 function handleFotoUpload(input){
   const file=input.files[0];if(!file)return;
@@ -577,7 +619,7 @@ async function saveSettings(){
   S.baseUrl=url.trim().replace(/\/$/,'');sv('baseUrl',S.baseUrl);
   const newFb=fb.trim().replace(/\/$/,'');
   if(newFb!==S.fbUrl){S.fbUrl=newFb;sv('fburl',S.fbUrl);}
-  if(pwd&&pwd.length>=4){S.adminPwd=pwd;sv('pwd',pwd);}
+  if(pwd&&pwd.length>=4){S.adminPwd=hashPwd(pwd);sv('pwd',S.adminPwd);}
   if(ek){S.ejsKey=ek;sv('ejsKey',ek);try{emailjs.init({publicKey:ek});}catch(e){}}
   if(es){S.ejsSvc=es;sv('ejsSvc',es);}
   if(et){S.ejsTpl=et;sv('ejsTpl',et);}
@@ -604,7 +646,7 @@ function exportPDF(t){
 ${t.caracteristicas?`<div style="margin-bottom:11px"><div class="fl">Características</div><div class="fv">${t.caracteristicas}</div></div>`:''}
 <h2>Cliente e Teste</h2><div class="g3"><div><div class="fl">Empresa</div><div class="fv">${t.empresa||'—'}</div></div><div><div class="fl">Contato</div><div class="fv">${t.contato||'—'}</div></div><div><div class="fl">Usuário</div><div class="fv">${t.nomeUsuario||'—'}</div></div><div><div class="fl">Cargo</div><div class="fv">${t.cargo||'—'}</div></div><div><div class="fl">Área</div><div class="fv">${t.area||'—'}</div></div><div><div class="fl">Período</div><div class="fv">${fmtD(t.dataInicio)} → ${fmtD(t.dataTermino)}</div></div></div>
 <h2>Avaliação por critério</h2><div class="g4">${CRIT.map(c=>`<div class="ci"><div class="cl">${c.label}</div><div class="cv">${rs(t.avaliacao?.[c.key])}</div></div>`).join('')}</div>
-<h2>Parecer do Usuário</h2><div class="pb">${t.parecerUsuario||'—'}</div><div style="margin-bottom:8px">Decisão: <span class="dc" style="${dc(t.decisaoUsuario)}">${t.decisaoUsuario==='aprovado'?'Aprovado':t.decisaoUsuario==='rejeitado'?'Rejeitado':'—'}</span></div>${t.assinaturaNome?`<div style="background:#E8F2FC;border-radius:4px;padding:7px 10px;font-size:10px;color:#0C447C;margin-bottom:12px">✍ Assinatura digital: <strong>${t.assinaturaNome}</strong> — CPF ${t.assinaturaCpf||'não informado'}</div>`:''}
+<h2>Parecer do Usuário</h2><div class="pb">${t.parecerUsuario||'—'}</div><div style="margin-bottom:8px">Decisão: <span class="dc" style="${dc(t.decisaoUsuario)}">${t.decisaoUsuario==='aprovado'?'Aprovado':t.decisaoUsuario==='rejeitado'?'Rejeitado':'—'}</span></div>${t.assinaturaNome?`<div style="background:#E8F2FC;border-radius:4px;padding:7px 10px;font-size:10px;color:#0C447C;margin-bottom:12px"><strong>✍ Assinatura: ${t.assinaturaNome}</strong>${t.assinaturaFoto?`<br><img src="${t.assinaturaFoto}" style="max-width:140px;max-height:170px;margin-top:6px;border-radius:4px;border:1px solid #BDD9F5">`:' — <em>(ficha legada — sem foto)</em>'}</div>`:''}
 ${t.parecerSESMT?`<h2>Parecer SESMT</h2><div class="pb">${t.parecerSESMT}</div><div style="display:flex;justify-content:space-between">Decisão: <span class="dc" style="${dc(t.decisaoSESMT)}">${t.decisaoSESMT==='aprovado'?'Aprovado':'Rejeitado'}</span><span>${t.responsavelSESMT||''} · ${fmtD(t.dataSESMT)}</span></div>`:''}
 ${t.editHistory?.length?`<h2>Histórico</h2>${t.editHistory.map(h=>`<div style="font-size:10px;color:#888;padding:2px 0;border-bottom:1px solid #f0f0f0">Editado por ${h.by} em ${h.ts}</div>`).join('')}`:''}
 <div class="ft"><span>Gerado ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span><span>Uniluvas Proteção — Gestão de EPIs</span></div></body></html>`;
@@ -665,7 +707,7 @@ function vHeader(back,title,sub){
     ${title?`<div style="border-top:1px solid rgba(255,255,255,.08);padding:9px 20px;max-width:1080px;margin:0 auto"><div style="font-size:13px;font-weight:500;color:rgba(255,255,255,.88)">${title}</div>${sub?`<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">${sub}</div>`:''}</div>`:''}
   </header>`;
 }
-function vFooter(){return`<footer class="footer">Uniluvas Proteção — Sistema de Gestão de Fichas de Teste de EPI</footer>`;}
+function vFooter(){return`<footer class="footer">Uniluvas Proteção — Testes de EPI · v${APP_VERSION}${S.lastSync?' · <span style="opacity:.7">'+S.lastSync+'</span>':''}</footer>`;}
 
 // ── HOME (visitante vê apenas 2 opções) ────────────────
 function vHome(){
@@ -805,7 +847,7 @@ function vAdmin(){
     +'<div class="sb-grp">Sistema</div>'
     +si('config','Configurações','M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z')
     +'<div class="sb-grp">Ações</div>'
-    +'<div class="si" onclick="nav(\"form\")"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16m8-8H4"/></svg><span>Nova ficha</span></div>'
+    +'<div class="si" onclick="nav(\'form\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16m8-8H4"/></svg><span>Nova ficha</span></div>'
     +'<div class="si" onclick="exportCSV()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg><span>Exportar CSV</span></div>'
     +'<div class="si" onclick="syncAll()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg><span>Sincronizar</span></div>'
     +'</nav></aside>';
@@ -1102,7 +1144,7 @@ function vDetail(){
     ${(()=>{const _exp=calcExp(t);let _w="";if(_exp&&_exp<new Date())_w='<div style="background:#FDEAEA;border:1.5px solid var(--red-l);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--red-d)">⚠ <strong>Período de teste encerrado</strong> — Prazo de '+(t.validadeTeste||30)+' dias superado.</div>';else{const _r=_exp?Math.ceil((_exp-Date.now())/(864e5)):null;if(_r!==null&&_r<=5)_w='<div style="background:var(--amber-l);border:1.5px solid #F0C060;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--amber-d)">⚠ <strong>Teste vence em breve</strong> — Restam '+_r+' dia'+(_r!==1?"s":"")+' para encerrar.</div>';}return _w;})()}<div class="card mb-16"><div class="sectitle">Equipamento</div><div style="display:flex;gap:16px;align-items:flex-start">${(()=>{const codeEntry=S.codes.find(c=>c.code===t.codigoAcesso);return codeEntry&&codeEntry.foto?`<img src="${codeEntry.foto}" style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1.5px solid var(--g200);flex-shrink:0">`:''})()}<div style="flex:1"><div class="g3 mb12">${fld('EPI',t.epi)}${fld('Referência',t.referencia)}${fld('CA',t.ca)}${fld('Amostras',t.amostras)}${fld('Fornecedor',t.fornecedor)}${fld('Entrega',fmtD(t.dataEntrega))}</div>${t.caracteristicas?'<div class="mt8">'+fld('Características',t.caracteristicas)+'</div>':''}</div></div></div>
     <div class="card mb-16"><div class="sectitle">Cliente e Teste</div><div class="g3 mb12">${fld('Empresa',t.empresa)}${fld('Contato',t.contato)}${fld('Usuário',t.nomeUsuario)}${fld('Cargo',t.cargo)}${fld('Área',t.area)}${fld('Período',t.dataInicio?fmtD(t.dataInicio)+' → '+fmtD(t.dataTermino):'—')}</div>${t.detalhamento?`<div class="mt8">${fld('Detalhamento',t.detalhamento)}</div>`:''}</div>
     <div class="card mb-16"><div class="sectitle">Avaliação por critério</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${CRIT.map(c=>`<div style="background:var(--g50);border:1.5px solid var(--g200);border-radius:8px;padding:10px"><div style="font-size:11px;color:var(--g400);margin-bottom:7px">${c.label}</div>${rbadge(t.avaliacao?.[c.key])}</div>`).join('')}</div></div>
-    <div class="card mb-16"><div class="sectitle">Parecer do Usuário</div><div style="background:var(--g50);border-radius:8px;padding:12px;font-size:13px;line-height:1.6;margin-bottom:10px">${t.parecerUsuario||'—'}</div><div class="fc g8 ts mb12"><span class="tm">Decisão:</span>${t.decisaoUsuario==='aprovado'?'<span class="badge bg">✓ Aprovado</span>':t.decisaoUsuario==='rejeitado'?'<span class="badge br">✗ Rejeitado</span>':'<span class="badge bk">Não informado</span>'}</div>${t.assinaturaNome?`<div style="background:var(--blue-l);border:1px solid #BDD9F5;border-radius:8px;padding:10px 12px;font-size:12px;color:#1E4A7A"><span style="font-weight:500">✍ Assinatura digital:</span> ${t.assinaturaNome} — CPF ${t.assinaturaCpf||'não informado'}</div>`:''}</div>
+    <div class="card mb-16"><div class="sectitle">Parecer do Usuário</div><div style="background:var(--g50);border-radius:8px;padding:12px;font-size:13px;line-height:1.6;margin-bottom:10px">${t.parecerUsuario||'—'}</div><div class="fc g8 ts mb12"><span class="tm">Decisão:</span>${t.decisaoUsuario==='aprovado'?'<span class="badge bg">✓ Aprovado</span>':t.decisaoUsuario==='rejeitado'?'<span class="badge br">✗ Rejeitado</span>':'<span class="badge bk">Não informado</span>'}</div>${t.assinaturaNome?`<div style="background:var(--blue-l);border:1px solid #BDD9F5;border-radius:8px;padding:10px 12px;font-size:12px;color:#1E4A7A"><div style="font-weight:500;margin-bottom:8px">✍ Assinatura: ${t.assinaturaNome}</div>${t.assinaturaFoto?`<img src="${t.assinaturaFoto}" style="max-width:200px;max-height:240px;border-radius:6px;border:1px solid #BDD9F5">`:'<div style="font-size:11px;opacity:.7;font-style:italic">(ficha legada — sem foto do empregado)</div>'}</div>`:''}</div>
     <div class="card mb-16" style="border-color:${t.decisaoSESMT?'var(--g200)':'#F0C060'}">
       <div class="sectitle" style="border-color:${t.decisaoSESMT?'var(--g100)':'#F0D090'}">${t.decisaoSESMT?'Parecer do SESMT':'⚠ Aguardando Parecer SESMT'}</div>
       ${t.decisaoSESMT?`<div style="font-size:13px;line-height:1.6;margin-bottom:12px">${t.parecerSESMT}</div><div class="fb ts"><div class="fc g8"><span class="tm">Decisão:</span>${t.decisaoSESMT==='aprovado'?'<span class="badge bg">✓ Aprovado</span>':'<span class="badge br">✗ Rejeitado</span>'}</div><div class="tm">${t.responsavelSESMT} · ${fmtD(t.dataSESMT)}</div></div>
@@ -1273,12 +1315,13 @@ function vS4(d){return`
     <button class="dbtn rj ${d.decisaoUsuario==='rejeitado'?'on':''}" onclick="setDec('rejeitado')"><div style="font-size:26px;margin-bottom:7px">✗</div>Rejeitado<div class="tx mt4" style="opacity:.7">Não atende</div></button>
   </div></div>
   <div style="background:var(--blue-l);border:1.5px solid #BDD9F5;border-radius:var(--r12);padding:16px;margin-top:4px">
-    <div style="font-size:13px;font-weight:600;color:#1E4A7A;margin-bottom:12px">✍ Assinatura digital</div>
-    <div class="g2">
-      <div class="fg" style="margin:0"><label class="lbl req">Nome completo</label><input id="f_assinaturaNome" placeholder="Seu nome completo" value="${d.assinaturaNome}" oninput="S.form.d.assinaturaNome=this.value"></div>
-      <div class="fg" style="margin:0"><label class="lbl req">CPF</label><input id="f_assinaturaCpf" placeholder="000.000.000-00" maxlength="14" value="${d.assinaturaCpf}" oninput="this.value=cpfMask(this.value);S.form.d.assinaturaCpf=this.value"></div>
+    <div style="font-size:13px;font-weight:600;color:#1E4A7A;margin-bottom:12px">✍ Assinatura visual do empregado</div>
+    <div class="fg" style="margin:0 0 14px"><label class="lbl req">Nome completo</label><input id="f_assinaturaNome" placeholder="Seu nome completo" value="${d.assinaturaNome}" oninput="S.form.d.assinaturaNome=this.value"></div>
+    <div class="fg" style="margin:0">
+      <label class="lbl req">Foto do empregado (comprovação visual)</label>
+      ${d.assinaturaFoto?`<div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap"><img src="${d.assinaturaFoto}" style="max-width:140px;max-height:180px;border-radius:8px;border:2px solid #BDD9F5"><div class="fc g8" style="flex-direction:column"><label class="btn btn-sm" style="cursor:pointer">📷 Trocar foto<input type="file" accept="image/*" capture="user" onchange="handleAssinaturaFoto(this)" style="display:none"></label><button class="btn btn-sm" style="color:var(--red)" onclick="S.form.d.assinaturaFoto='';R()">Remover</button></div></div>`:`<label class="btn" style="cursor:pointer;display:inline-block">📷 Capturar / enviar foto<input type="file" accept="image/*" capture="user" onchange="handleAssinaturaFoto(this)" style="display:none"></label>`}
     </div>
-    <div class="ts tm mt8">Ao enviar, você confirma que as informações são verdadeiras e que esta é sua assinatura eletrônica.</div>
+    <div class="ts tm mt8">A foto comprova quem testou o EPI. Ao enviar, você confirma que as informações são verdadeiras.</div>
   </div>
   <div class="card" style="background:var(--g50);margin-top:14px;border-color:var(--g200)"><div class="ts fw5 mb8">Resumo</div><div class="ts tm" style="line-height:2"><strong style="color:var(--g700)">EPI:</strong> ${d.epi||'—'} &nbsp;·&nbsp; <strong style="color:var(--g700)">Empresa:</strong> ${d.empresa||'—'} &nbsp;·&nbsp; <strong style="color:var(--g700)">Critérios:</strong> ${CRIT.filter(c=>d[c.key]).length}/${CRIT.length}</div></div>`;}
 
