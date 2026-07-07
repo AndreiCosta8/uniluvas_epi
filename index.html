@@ -152,7 +152,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 <body>
 <div id="app"></div>
 <script>
-const APP_VERSION='1.5';
+const APP_VERSION='1.5.4';
 // ── CONSTANTS ──────────────────────────────────────────
 const CRIT=[
   {key:'resistencia',label:'Resistência'},
@@ -329,7 +329,7 @@ function copyText(text,btn){
 }
 
 // ── URL ROUTING ────────────────────────────────────────
-function handleUrl(){
+async function handleUrl(){
   const p=new URLSearchParams(window.location.search);
   const view=p.get('view'), code=(p.get('code')||'').toUpperCase(), tab=p.get('tab');
   // ── Deep-link via ?tab= (vindo do workspace) ───────────────
@@ -345,18 +345,39 @@ function handleUrl(){
   history.replaceState({},'',window.location.pathname);
   if(view==='form'){
     if(code){
+      // v1.5.4: mesmo princípio da correção do SESMT (v1.5.3) — o dispositivo do
+      // funcionário que abre o link pode nunca ter tido este código no cache local,
+      // pois foi gerado em outro aparelho (ex: computador do admin/Veridiana no Armazém).
+      // Sem isso, o formulário abria em branco (sem referência/CA/fornecedor
+      // pré-preenchidos) e ninguém percebia que era um bug — parecia só "código vazio".
+      let rawC=hasFb()&&!isFileProtocol()?(await fbGet('codes'))||ld('codes',S.codes):ld('codes',S.codes);
+      const freshCodes=normTests(rawC);
+      if(freshCodes.length){S.codes=freshCodes;sv('codes',freshCodes);}
       const e=S.codes.find(c=>c.code===code);
       if(e){S.formCode=code;S.form.d.epi=e.epi;S.form.d.referencia=e.referencia;S.form.d.ca=e.ca;S.form.d.amostras=e.amostras||'';S.form.d.dataEntrega=e.dataEntrega||'';S.form.d.caracteristicas=e.caracteristicas||'';S.form.d.fornecedor=e.fornecedor||'';S.form.codeLock=true;S.form.step=2;}
     }
     S.view='form';
   }else if(view==='formblank'){S.view='form';}
   else if(view==='portal'){
-    if(code){const pt=S.portals.find(p=>p.code===code);if(pt){S.portalCompany=pt;S.view='portal';return;}}
+    if(code){
+      // v1.5.4: mesma lógica — o cliente que recebe o link do portal pode estar
+      // acessando de um dispositivo que nunca sincronizou com o Firebase.
+      let rawP=hasFb()&&!isFileProtocol()?(await fbGet('portals'))||ld('portals',S.portals):ld('portals',S.portals);
+      const freshPortals=normTests(rawP);
+      if(freshPortals.length){S.portals=freshPortals;sv('portals',freshPortals);}
+      const pt=S.portals.find(p=>p.code===code);
+      if(pt){S.portalCompany=pt;S.view='portal';return;}
+    }
     S.view='portalEntry';
   }else if(view==='sesmt'){
     if(code){
-      // Lê do localStorage local (pode ser diferente do Firebase se outra pessoa gravou)
-      const fresh=migrateTests(ld('tests',S.tests));
+      // v1.5.3: busca primeiro na nuvem (Firebase) — o dispositivo que abre este link
+      // (ex: celular da segurança) pode nunca ter tido esta ficha em seu cache local,
+      // pois ela foi criada em outro aparelho. Ler só do localStorage fazia o link
+      // parecer "quebrado" para quem recebia o código por WhatsApp.
+      let raw=hasFb()&&!isFileProtocol()?(await fbGet('tests'))||ld('tests',S.tests):ld('tests',S.tests);
+      const fresh=migrateTests(normTests(raw));
+      sv('tests',fresh);
       const t=fresh.find(t=>(t.sesmtCode||'').toUpperCase()===code);
       if(t){
         if(t.decisaoSESMT){S.sesmtCodeErr='Este parecer já foi registrado.';S.view='sesmtEntry';return;}
@@ -1369,10 +1390,10 @@ function R(){
 // ── BOOTSTRAP ──────────────────────────────────────────
 (async()=>{
   try{await initData();}catch(e){S.tests=migrateTests(ld('tests',null)||DTESTS);S.codes=ld('codes',null)||DCODES;S.portals=ld('portals',null)||DPORTALS;}
-  handleUrl();
+  await handleUrl();
   R();
 })();
-window.addEventListener('popstate',()=>{handleUrl();R();});
+window.addEventListener('popstate',async()=>{await handleUrl();R();});
 </script>
 </body>
 </html>
